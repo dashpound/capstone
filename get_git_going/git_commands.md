@@ -38,8 +38,17 @@ $ git fetch remote master
 **Integrate your changes** 
 
 ```bash
-$ git fetch origin
+$ git fetch origin <branch>
 $ git rebase <branch>
-$ git push origin branch
+$ git push origin <branch>
 ```
+
+`git fetch origin <branch>` retrieves all the changes from the origin (GitHub)
+
+`git rebase <branch>` be careful when you're doing this, you could accidently delete work if you do this wrong.  Rebase takes the changes from the shared remote repository & plops them ontop of your last shared commit.
+
+` git push origin <branch>` send you code back to GitHub.
+
+
+`#TODO` Get more detailed on git merge & git rebase.
 
