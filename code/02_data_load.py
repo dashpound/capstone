@@ -3,8 +3,9 @@
 # Last Edited Date: 10/9/19
 
 # Description:
-# Loads review data and verifies there is data.
-# Loads product metadata and verifies there is data.
+# Loads review data and verifies data loading.
+# Loads product metadata and verifies data loading.
+# Loads Q/A data and verifies data loading.
 
 
 # Notes:
@@ -19,6 +20,8 @@
 # Verify review data loaded successfully.
 # Unpack product metadata.
 # Verify product metadata loaded successfully.
+# Unpack Q/A data.
+# Verify Q/A data loaded successfully.
 
 
 # =============================================================================
