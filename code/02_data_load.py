@@ -1,6 +1,6 @@
 # Name: 02_data_load
 # Author: Julia
-# Last Edited Date: 10/8/19
+# Last Edited Date: 10/9/19
 
 # Description:
 # Loads review data and verifies there is data.
@@ -54,3 +54,23 @@ with open (os.path.join(data_path, metadata_path), 'rb') as pickle_file:
 print('Metadata data shape: ', metadata_df.shape)
 print('Metadata data columns: ', metadata_df.columns)
 print(metadata_df.head())
+
+
+# =============================================================================
+# Load QA Data
+# =============================================================================
+# Performing garbage collect just in case
+gc.collect()
+
+# Unpack QA data
+# Not sure if QA data will be used just yet
+with open (os.path.join(data_path, qa_path), 'rb') as pickle_file:
+    qa_df = pickle.load(pickle_file)   
+    
+    
+# =============================================================================
+# Verify QA Data Loaded Successfully
+# =============================================================================
+print('Q/A data shape: ', qa_df.shape)
+print('Q/A data columns: ', qa_df.columns)
+print(qa_df.head())
