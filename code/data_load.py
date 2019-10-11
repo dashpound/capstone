@@ -59,10 +59,10 @@ gc.collect()
 
 # Unpack metadata
 with open(Path(working_directory + data_path + metadata_path), 'rb') as pickle_file:
-    metadata_df = pickle.load(pickle_file)   
+    metadata_df = pickle.load(pickle_file)
 
 print('Script: 02.01.03 [Load Product Metadata Data] completed')
-    
+
 # =============================================================================
 # 02.01.04 | Verify Reviews Data Loaded Successfully
 # =============================================================================
@@ -80,16 +80,16 @@ gc.collect()
 
 # Unpack QA data
 # Not sure if QA data will be used just yet
-with open (Path(working_directory + data_path + qa_path), 'rb') as pickle_file:
-    qa_df = pickle.load(pickle_file)   
-    
+with open(Path(working_directory + data_path + qa_path), 'rb') as pickle_file:
+    qa_df = pickle.load(pickle_file)
+
 print('Script: 02.01.05 [Load QA Data] completed')
 
 # =============================================================================
-# 02.01.05 | Load QA Data
+# 02.01.05 | Verify QA Data Loaded Successfully
 # =============================================================================
 print('Q/A data shape: ', qa_df.shape)
 print('Q/A data columns: ', qa_df.columns)
 print(qa_df.head())
 
-print('Script: 02.01.05 [Load QA Data] completed')
+print('Script: 02.01.05 [Verify QA Data] completed')
