@@ -15,6 +15,7 @@
 # 01.01.02 | Import Packages
 # =============================================================================
 import seaborn as sns
+import matplotlib.pyplot as plt
 import os
 
 print('Script: 01.01.02 [Import Packages] completed')
@@ -54,7 +55,11 @@ print('Script: 01.01.03 [Update Data Paths] completed')
 # 01.01.04 | Define Other Global Variables
 # =============================================================================
 # custom color palette
-my_palette = sns.color_palette() # 10 colors
+def set_palette():
+    my_palette = sns.color_palette() # 10 colors
+    sns.set_palette(my_palette)
+    sns.palplot(my_palette)
+    plt.show()
 
 # set seed for reproducability
 RANDOM_SEED = 42
