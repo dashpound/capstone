@@ -11,5 +11,16 @@
 # Outline:             
 #                      
 # =============================================================================
-# 00.02.01 | Function 1 Name
+# 00.01.02 | Import packages
 # =============================================================================
+import pandas as pd
+
+# =============================================================================
+# 00.02.01 | Convert Pivot to Data Frame
+# =============================================================================
+# Convert Base Pivot to Data Frame
+def conv_pivot2df(pivot_name):
+    '''Pandas pivot table to data frame; requires pandas'''
+    pivot_name.columns = pivot_name.columns.droplevel(0)
+    pivot_name = pivot_name.reset_index().rename_axis(None, axis=1)
+    pivot_name = pd.DataFrame(pivot_name)

@@ -15,14 +15,16 @@
 # 03.00.02 | Import Modules & Packages
 # =============================================================================
 # Import packages
-import pickle
-import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
-from pathlib import Path
-import gc
+import pandas as pd
 
 # Import modules (other scripts)
 from data_load import reviews_df
+from environment_configuration import set_palette
+from functions import conv_pivot2df
+
 
 print('Script: 03.00.02 [Import Packages] completed')
 
@@ -49,9 +51,7 @@ base_pivot = pd.pivot_table(reviews_df, index=['reviewerID'], values=['overall']
                             aggfunc={'overall': [len, np.min, np.mean, np.median, np.max]})
 
 # Convert Base Pivot to Data Frame
-base_pivot.columns = base_pivot.columns.droplevel(0)
-base_pivot = base_pivot.reset_index().rename_axis(None, axis=1)
-base_pivot = pd.DataFrame(base_pivot)
+conv_pivot2df(base_pivot)
 
 # Calculate the average review per product in this category
 base_avg = base_pivot['mean'].mean()
@@ -77,9 +77,7 @@ review_pivot = pd.pivot_table(reviews_df, index=['asin'], values=['overall'],
                               aggfunc={'overall': [len, min, np.mean, np.median, max]})
 
 # Convert Review Pivot to Data Frame
-review_pivot.columns = review_pivot.columns.droplevel(0)
-review_pivot = review_pivot.reset_index().rename_axis(None, axis=1)
-review_pivot = pd.DataFrame(review_pivot)
+conv_pivot2df(review_pivot)
 
 # Calculate the average review per product in this category
 product_avg = review_pivot['mean'].mean()
@@ -92,3 +90,15 @@ print('Average reviews per product: {:.2f}'.format(product_count))
 print('Number of unique products reviewed: {:.2f}'.format(review_pivot.shape[0]),'\n')
 print('----------------------------------------------------\n')
 print('Script: 03.01.03 [Reviews: Product Focused EDA ] completed')
+
+# =============================================================================
+# 03.01.03 | Reviews: Product Centric EDA
+# =============================================================================
+
+# Basic chart
+set_palette()
+
+sns.lmplot(x="mean", y="len", data=review_pivot,
+           fit_reg=False)
+
+plt.show()
