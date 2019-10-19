@@ -60,6 +60,16 @@ def set_palette():
     sns.set_palette(my_palette)
     sns.palplot(my_palette)
     plt.show()
+    
+# combining levels of categorical variable into level of 'Other' based on threshold
+threshold = 100 
+
+def set_levels(df, col):
+    df = df.copy()
+    for i in col.unique():
+        if len(df.loc[col == i]) < threshold:
+            df.loc[col == i] = 'Other'
+    return df
 
 # set seed for reproducability
 RANDOM_SEED = 42
