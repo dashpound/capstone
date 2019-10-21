@@ -1,15 +1,28 @@
 # ===============================================================================
-# 04.00.01 | Product Metadata Data Prep | Documentation
+# 04.00.01 | Product Metadata Features | Documentation
 # ===============================================================================
-# Name:               Product Metadata Data Prep
+# Name:               04_product_metadata_features
 # Author:             Rodd
 # Last Edited Date:   10/19/19
 # Description:        Create relevant metataa features from the product data set.
 #                     
-# Notes:
+# Notes:              Did not process the related field b/c unclear how it will be used.
+#                     Brand variable is extremely sparse so was omitted.
+#                     Title and description variables have a few missing vals but were left as is.
 # Warnings:
 #
-# Outline:
+# Outline:            Imports needed packages and objects from other scripts.
+#                     Extracts product categories and creates new category variables.
+#                     Creates a field for hasDescription based on product description.
+#                     Fills missing price information with 0.
+#                     Extracts sales rank information for the electronics cat only.
+#                     Creates relevant features from the reviews data.
+#                     Creates relevant features from the qa data.
+#                     Removes unneeded columns and performs joins to create final data frame.
+#                     Data frame is pickled and saved to the data folder.
+#                     Some features are transformed via one-hot encoding.
+#                     One-hot encoded data frame is saved to the data folder.
+#
 #
 # =============================================================================
 # 04.00.02 | Import Modules & Packages
@@ -23,7 +36,7 @@ import gc
 import pickle
 
 # Import modules (other scripts)
-from data_load import reviews_df, metadata_df
+from data_load import reviews_df, metadata_df, qa_df
 from environment_configuration import set_palette, set_levels 
 from functions import conv_pivot2df
 
@@ -163,13 +176,34 @@ rating_dist['star3Rating'] = rating_dist['star3Rating'].fillna(0)
 rating_dist['star4Rating'] = rating_dist['star4Rating'].fillna(0)
 rating_dist['star5Rating'] = rating_dist['star5Rating'].fillna(0)
 
+
 # =============================================================================
-# 04.08.01 | Drop columns
+# 04.08.01 | Add in Q/A data
+# =============================================================================
+# first we summarize this data so that it is easier to join into
+# upon inspecting the data, the number of questions asked and answers given is the same
+
+# get the number of questions by product
+question_sum = qa_df.groupby('asin').agg({'question': 'count'}).rename(columns={'question':'numberQuestions'}).reset_index()
+
+# join this back to our product_df
+product_df = pd.merge(product_df, question_sum, on='asin',how='left')
+
+# fill missing vals with 0
+product_df['numberQuestions'] = product_df['numberQuestions'].fillna(0)
+
+# change data type to int
+product_df['numberQuestions'] = product_df['numberQuestions'].astype(int)
+
+
+# =============================================================================
+# 04.09.01 | Drop columns
 # =============================================================================
 # verify data types and make changes if needed
 # product_df.dtypes
 
 # want to create a full data frame 
+# this is for safe-keeping
 product_df_full = product_df
 
 
@@ -189,7 +223,7 @@ product_df_sub = product_df
 
 
 # =============================================================================
-# 04.09.01 | Join to reviews data for full feature set
+# 04.10.01 | Join to reviews data for full feature set
 # =============================================================================
 # join to reviews and only keep the product info that we need
 product_final = pd.merge(product_df, product_review_pivot, on='asin', how='inner')
@@ -197,7 +231,7 @@ product_final = pd.merge(product_final, rating_dist, on='asin', how='left')
 
 
 # =============================================================================
-# 04.10.01 | Create binned var for electronics rank
+# 04.11.01 | Create binned var for electronics rank
 # =============================================================================
 # this step will help with missing values b/c can't just set these to a certain val
 # product_final['electronicsSalesRank'].describe()
@@ -206,7 +240,7 @@ product_final = pd.merge(product_final, rating_dist, on='asin', how='left')
 # the bins include the top number so it would be (0, 66682]
 product_final['electronicsRankBin'] = pd.cut(x=product_final['electronicsSalesRank'], 
           bins=[0, 8541.75,32031.50,69008.75,810712.],
-          labels=['25th percentile', '50th percentile', '75th percentile', '100th percentile'])
+          labels=['25thPercentile', '50thPercentile', '75thPercentile', '100thPercentile'])
 
 # have to replace missing values with Unknown
 product_final['electronicsRankBin'] = product_final['electronicsRankBin'].cat.add_categories(["Unknown"])
@@ -224,11 +258,62 @@ product_final.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\
 
 # df = pd.read_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_no_one_hot_encoding.pkl")
 
-# other to dos:
-# do we keep title in?
-# process description field with NLP/TF-IDF?
-# one-hot encoding
-# save other dfs for reference?
+
+# =============================================================================
+# 04.11.01 | Create One-Hot Encoding for electronicsRankBin
+# =============================================================================
+product_one_hot = product_final
+
+# before we create dummy vars, want to rename the values so that columns are descriptive when spread
+product_one_hot['electronicsRankBin'] = 'electronicsRank' + product_one_hot['electronicsRankBin']
+
+# verify levels
+product_one_hot['electronicsRankBin'].unique()
+
+# get one hot encoding of electronicsRankBin
+# this approach is used over scikit-learn b/c we want column names to be descriptive
+# we do not not want electronicsRank1, electronicsRank2, etc.
+electronics_one_hot = pd.get_dummies(product_one_hot['electronicsRankBin'])
+
+# join the encoded df
+product_one_hot = product_one_hot.join(electronics_one_hot)
+
+# drop electronicsRankBin since it is now encoded
+product_one_hot = product_one_hot.drop('electronicsRankBin',axis = 1)
+
+
+# =============================================================================
+# 04.12.01 | Create One-Hot Encoding for category2_t
+# =============================================================================
+# product_one_hot['category2_t'].nunique() - 14
+# product_one_hot['category3_t'].nunique() - 88
+# only doing this for category2 b/c do not want to bloat the data
+
+# before we create dummy vars, want to rename the values so that columns are descriptive when spread
+# also removing white spaces
+product_one_hot['category2_t'] = 'category2' + product_one_hot['category2_t'].str.replace(' ', '')
+
+# get one hot encoding of category2_t
+cat2_one_hot = pd.get_dummies(product_one_hot['category2_t'])
+
+# join the encoded df
+product_one_hot = product_one_hot.join(cat2_one_hot)
+
+# drop category2_t since it is now encoded
+product_one_hot = product_one_hot.drop('category2_t',axis = 1)
+
+
+# =============================================================================
+# 04.13.01 | Drop Other Columns
+# =============================================================================
+columns_to_remove = ['category3_t','category4_t','category5_t','category6_t']
+product_one_hot = product_one_hot.drop(columns_to_remove, axis=1)
+
+
+# =============================================================================
+# 04.14.01 | Save one-hot encoded data set
+# =============================================================================
+product_one_hot.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_one_hot_encoding.pkl")
 
 
 # =============================================================================

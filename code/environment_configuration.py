@@ -48,6 +48,9 @@ modeling_path = '../output/models'
 reviews_path = '/reviewsdata_5.pkl'
 metadata_path = '/metadata.pkl'
 qa_path = '/QA_data.pkl'
+products_clean_path = '/product_metadata_no_one_hot_encoding.pkl'
+products_onehot_path = '/product_metadata_one_hot_encoding.pkl'
+
 
 print('Script: 01.01.03 [Update Data Paths] completed')
 
