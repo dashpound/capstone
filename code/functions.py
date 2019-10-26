@@ -14,6 +14,8 @@
 # 00.01.02 | Import packages
 # =============================================================================
 import pandas as pd
+import re,string
+from nltk.corpus import stopwords
 
 # =============================================================================
 # 00.02.01 | Convert Pivot to Data Frame
@@ -73,12 +75,12 @@ def collect_text(df, groupby_column, return_column):
             """for each row in the dataframe take the requested column and concatenate it together"""
             temp_text = f[return_column].iloc[j]
             agg_values.append(temp_text)
-            #print(agg_values)
         """Concatenate all the items such that there is one row and one column per"""
         separator = ', '
         by_group.append(separator.join(agg_values))
         label_store.append(uniquez[i])
         a = dict(zip(label_store, by_group))
+        #print('Row:', i, "completed")
     return a
 
 print('Script: 00.03.02 [Collect Text] Defined')
@@ -98,4 +100,3 @@ def gen_jlines(headers, dataframe, output):
     return cr_df
 
 print('Script: 00.03.04 [Generate Jsonlines] Defined')
-

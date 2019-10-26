@@ -26,26 +26,396 @@ from sklearn.manifold import MDS
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matplotlib.pyplot as plt
-import pandas as pd
 import os
 import io
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import numpy as np
-import jsonlines
+import json_lines
+import pandas as pd
 
 # Import modules (other scripts)
 from data_load import reviews_df
 from environment_configuration import set_palette
 from functions import clean_docs
 from functions import gen_jlines
+from environment_configuration import RANDOM_SEED
 
 print('Script: 04.00.02 [Import Packages] completed')
 
-# %%
+# =============================================================================
+# 04.01.01 | Settings for sampling to facilitate development
+# =============================================================================
+# Generate jsonlines file, configure to n to skip
+# Note: This really only needs to be run once & then stored as part of teh repository
+# Default to 'n"
+create_jlines = 'y'
+
+# Sample it makes it so that the data frame is sampled for quicker development
+# Configure to 'n' in production
+sampleit = 'y'
+# Number of records to sample if sampleit is 'y'
+num_2_samp = 2
+
+# Sampling function
+if sampleit == 'y':
+    reviews_df = reviews_df.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
+else:
+    pass
+
+print('Script: 04.00.03 [Sampling mode settings set] completed')
+
 # =============================================================================
 # 04.01.01 | Create a list of products
 # =============================================================================
-headers = ['reviewerID', 'reviewText']
-nlp_df_reviewer = gen_jlines(headers, reviews_df, "../data/jsonlines/collection_reviews.jsonlines")
+if create_jlines == 'n':
+    print('Script: 04.01.01 [Create jsonlines file] skipped')
+else:
+    headers = ['reviewerID', 'reviewText']
+    if sampleit == 'y':
+        out_file_name = "../data/jsonlines/collection_reviews2.jsonlines"
+    else:
+        out_file_name = "../data/jsonlines/collection_reviews.jsonlines"
+    nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
+    print('Script: 04.01.01 [Create jsonlines file] completed')
 
-print('Script: 04.01.01 [Collect Text] completed')
+# =============================================================================
+# 04.02.01 | Readin jsonlines file
+# =============================================================================
+# Set up blank dictionaries to read-in jsonlines file
+# Note this section is mostly necessary if you skip creating the jsonlines file in 04.01.01
+# It is recommended to skip because it takes forever to process the dataframe
+
+labels={'labels':[]}
+text={'text':[]}
+
+# Readin jsonlines file
+with open(out_file_name, 'rb') as f:
+    for item in json_lines.reader(f):
+        labels['labels'].append(item['reviewerID'])
+        text['text'].append(item['reviewText'])
+
+# The read in creates two dataframes one for labels, one for position; this just joins them together by position
+data = pd.concat([pd.DataFrame(labels),pd.DataFrame(text)], axis=1)
+
+print('Script: 04.02.01 [Readin jsonlines file] completed')
+
+# =============================================================================
+# 04.02.02 | Sample jsonlines file
+# =============================================================================
+# Samples the dataframe for quick active development; this will be disabled once development is done
+
+if sampleit == 'y':
+    data=data.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
+    print('Script: 04.02.02 [NLP dataframe sample] completed')
+else:
+    print('Script: 04.02.02 [NLP dataframe sample] skipped')
+
+# I dont think i need this, probably delete
+data=data.reset_index()
+
+# =============================================================================
+# 04.03.01 | Stage text for cleansing
+# =============================================================================
+# create empty list to store text documents
+text_body = []
+
+# for loop which appends the text to the text_body list
+for i in range(0, len(data)):
+    temp_text = data['text'].iloc[i]
+    text_body.append(temp_text)
+
+print('Script: 04.03.01 [Create text body] completed')
+
+# =============================================================================
+# 04.03.02 | Finally clean/process the text
+# =============================================================================
+
+# empty list to store processed documents
+processed_text = []
+# for loop to process the text to the processed_text list
+for i in text_body:
+    text = clean_docs(i)
+    processed_text.append(text)
+
+print('Script: 04.03.02 [Create text body] completed')
+
+# Note: the processed_text is the PROCESSED list of documents read directly form
+# the csv.  Note the list of words is separated by commas.
+
+# =============================================================================
+# 04.03.03 | Rebuild body of text post processing
+# =============================================================================
+# stitch back together individual words to reform body of text
+
+final_processed_text = []
+
+for i in processed_text:
+    temp_DSI = ' '.join(i)
+    final_processed_text.append(temp_DSI)
+
+# Note: We stitched the processed text together so the TFIDF vectorizer can work.
+# Final section of code has 3 lists used.  2 of which are used for further processing.
+# (1) text_body - unused, (2) processed_text (used in W2V),
+# (3) final_processed_text (used in TFIDF), and (4) DSI titles (used in TFIDF Matrix)
+
+print('Script: 04.03.03 [Rebuilt text post processing] completed')
+
+# =============================================================================
+# 04.03.04 | Processing labels to lists
+# =============================================================================
+
+#create empty list to store labels
+labels=[]
+
+#for loop which appends the DSI title to the titles list
+for i in range(0,len(data)):
+    temp_text=data['labels'].iloc[i]
+    labels.append(temp_text)
+
+print('Script: 04.03.04 [Itemize labels] completed')
+
+# =============================================================================
+# 04.04.01 | Sklearn TFIDF
+# =============================================================================
+# note the ngram_range will allow you to include multiple words within the TFIDF matrix
+# Call Tfidf Vectorizer
+Tfidf = TfidfVectorizer(ngram_range=(1, 1))
+
+# fit the vectorizer using final processed documents.  The vectorizer requires the
+# stiched back together document.
+
+TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
+
+# creating dataframe from TFIDF Matrix
+matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=labels)
+
+matrix.to_csv("../data/tfidf/tfidf_matrix.csv")
+
+print('Script: 04.04.01 [Sklearn TFIDF, write tfidf] completed')
+
+# =============================================================================
+# 04.05.01 | K Means Clustering - TFIDF
+# =============================================================================
+# Set number of clusters
+k = 2
+km = KMeans(n_clusters=k, random_state=RANDOM_SEED)
+km.fit(TFIDF_matrix)
+clusters = km.labels_.tolist()
+
+terms = Tfidf.get_feature_names()
+Dictionary = {'Reviewer': labels, 'Cluster': clusters, 'Text': final_processed_text}
+frame = pd.DataFrame(Dictionary, columns=['Cluster', 'Reviewer', 'Text'])
+
+frame = pd.concat([frame, data['labels']], axis=1)
+
+frame['record'] = 1
+
+print('Script: 04.05.01 [K Means Clustering] completed')
+
+# %%
+# =============================================================================
+# 04.05.02 | Pivot table to see see how clusters compare to categories
+# =============================================================================
+
+pivot = pd.pivot_table(frame, values='record', index='labels',
+                       columns='Cluster', aggfunc=np.sum)
+
+print(pivot)
+
+print('Script: 04.05.02 [K Means Pivot] completed')
+
+# %%
+# =============================================================================
+# 04.05.03 | Top Terms per cluster
+# =============================================================================
+
+print("Top terms per cluster:")
+# sort cluster centers by proximity to centroid
+order_centroids = km.cluster_centers_.argsort()[:, ::-1]
+
+terms_dict = []
+
+# save the terms for each cluster and document to dictionaries.  To be used later
+# for plotting output.
+
+# dictionary to store terms and titles
+cluster_terms = {}
+cluster_title = {}
+
+for i in range(k):
+    print("Cluster %d:" % i),
+    temp_terms = []
+    temp_titles = []
+    for ind in order_centroids[i, :10]:
+        print(' %s' % terms[ind])
+        terms_dict.append(terms[ind])
+        temp_terms.append(terms[ind])
+    cluster_terms[i] = temp_terms
+
+    # print("Cluster %d titles:" % i, end='')
+    # temp = frame[frame['Cluster'] == i]
+    # for title in temp['Reviewer']:
+    #     print(' %s,' % title, end='')
+    #     temp_titles.append(title)
+    # cluster_title[i] = temp_titles
+
+print('Script: 04.05.03 [Top terms per cluster] completed')
+#
+# # %%
+# # =============================================================================
+# # TF-IDF Plotting - mds algorithm
+# # =============================================================================
+#
+# # convert two components as we're plotting points in a two-dimensional plane
+# # "precomputed" because we provide a distance matrix
+# # we will also specify `random_state` so the plot is reproducible.
+#
+# mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
+# # mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
+#
+# dist = 1 - cosine_similarity(TFIDF_matrix)
+#
+# pos = mds.fit_transform(dist)  # shape (n_components, n_samples)
+#
+# xs, ys = pos[:, 0], pos[:, 1]
+#
+# # set up colors per clusters using a dict.  number of colors must correspond to K
+# cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
+#                   5: 'red', 6: 'darksalmon', 7: 'sienna'}
+#
+# # set up cluster names using a dict.
+# cluster_dict = cluster_title
+#
+# # create data frame that has the result of the MDS plus the cluster numbers and titles
+# df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=range(0, len(clusters))))
+#
+# # group by cluster
+# groups = df.groupby('label')
+#
+# fig, ax = plt.subplots(figsize=(12, 12))  # set size
+# ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
+#
+# # iterate through groups to layer the plot
+# # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
+# for name, group in groups:
+#     ax.plot(group.x, group.y,
+#             marker='o', linestyle='', ms=12,
+#             label=cluster_dict[name], color=cluster_colors[name],
+#             mec='none')
+#     ax.set_aspect('auto')
+#     ax.tick_params( \
+#         axis='x',  # changes apply to the x-axis
+#         which='both',  # both major and minor ticks are affected
+#         bottom=False,  # ticks along the bottom edge are off
+#         top=False,  # ticks along the top edge are off
+#         labelbottom=True)
+#     ax.tick_params( \
+#         axis='y',  # changes apply to the y-axis
+#         which='both',  # both major and minor ticks are affected
+#         left=False,  # ticks along the bottom edge are off
+#         top=False,  # ticks along the top edge are off
+#         labelleft=True)
+#
+# plt.title('TF-IDF Clustering | MDS Algorithm')
+# # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
+#
+# # The following section of code is to run the k-means algorithm on the doc2vec outputs.
+# # note the differences in document clusters compared to the TFIDF matrix.
+#
+# print('TF-IDF | MDS | Plot clusters complete -----------------------------------------------')
+#
+# # %%
+# # =============================================================================
+# # TF-IDF Plotting - TSNE algorithm
+# # =============================================================================
+#
+# # convert two components as we're plotting points in a two-dimensional plane
+# # "precomputed" because we provide a distance matrix
+# # we will also specify `random_state` so the plot is reproducible.
+#
+# # mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
+# mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
+#
+# dist = 1 - cosine_similarity(TFIDF_matrix)
+#
+# pos = mds.fit_transform(dist)  # shape (n_components, n_samples)
+#
+# xs, ys = pos[:, 0], pos[:, 1]
+#
+# # set up colors per clusters using a dict.  number of colors must correspond to K
+# cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
+#                   5: 'red', 6: 'darksalmon', 7: 'sienna'}
+#
+# # set up cluster names using a dict.
+# cluster_dict = cluster_title
+#
+# # create data frame that has the result of the MDS plus the cluster numbers and titles
+# df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=range(0, len(clusters))))
+#
+# # group by cluster
+# groups = df.groupby('label')
+#
+# fig, ax = plt.subplots(figsize=(12, 12))  # set size
+# ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
+#
+# # iterate through groups to layer the plot
+# # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
+# for name, group in groups:
+#     ax.plot(group.x, group.y,
+#             marker='o', linestyle='', ms=12,
+#             label=cluster_dict[name], color=cluster_colors[name],
+#             mec='none')
+#     ax.set_aspect('auto')
+#     ax.tick_params( \
+#         axis='x',  # changes apply to the x-axis
+#         which='both',  # both major and minor ticks are affected
+#         bottom=False,  # ticks along the bottom edge are off
+#         top=False,  # ticks along the top edge are off
+#         labelbottom=True)
+#     ax.tick_params( \
+#         axis='y',  # changes apply to the y-axis
+#         which='both',  # both major and minor ticks are affected
+#         left=False,  # ticks along the bottom edge are off
+#         top=False,  # ticks along the top edge are off
+#         labelleft=True)
+#
+# plt.title('TF-IDF Clustering | TSNE Algorithm')
+# # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
+#
+# print('TF-IDF | TSNE | Plot clusters complete -----------------------------------------------')
+# # %%
+# # =============================================================================
+# # K Means Clustering - Terms - TFIDF
+# # =============================================================================
+# # =============================================================================
+# # Sklearn TFIDF
+# # =============================================================================
+#
+# # note the ngram_range will allow you to include multiple words within the TFIDF matrix
+# # Call Tfidf Vectorizer
+# Tfidf = TfidfVectorizer(ngram_range=(1, 1))
+#
+# # fit the vectorizer using final processed documents.  The vectorizer requires the
+# # stiched back together document.
+#
+# TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
+#
+# # creating datafram from TFIDF Matrix
+# matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=titles)
+#
+# print('Sklearn TFIDF complete -----------------------------------------------')
+#
+# matrix = matrix.transpose()
+#
+# k = 2
+# km = KMeans(n_clusters=k, random_state=RANDOM_SEED)
+# km.fit(matrix)
+# clusters = km.labels_.tolist()
+#
+# terms = Tfidf.get_feature_names()
+# Dictionary = {'Doc Name': terms, 'Cluster': clusters}
+# frame = pd.DataFrame(Dictionary, columns=['Cluster', 'Doc Name'])
+#
+# # matrix=matrix.sample(n=1000, replace=False, random_state =RANDOM_SEED)
+#
+# print('Terms - TF-IDF Kmeans Clustering Complete -------------------------------------------')
