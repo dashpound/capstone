@@ -45,9 +45,7 @@ print('Script: 04.00.02 [Import Packages] completed')
 # =============================================================================
 # 04.01.01 | Create a list of products
 # =============================================================================
-df2 = reviews_df[reviews_df['reviewerID'].isin(['AO94DHGC771SJ', 'AMO214LNFCEI4'])]
 headers = ['reviewerID', 'reviewText']
-
-nlp_df_reviewer = gen_jlines(headers, df2, "../data/jsonlines/collection_reviews.jsonlines")
+nlp_df_reviewer = gen_jlines(headers, reviews_df, "../data/jsonlines/collection_reviews.jsonlines")
 
 print('Script: 04.01.01 [Collect Text] completed')
