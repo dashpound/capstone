@@ -215,7 +215,6 @@ frame['record'] = 1
 
 print('Script: 04.05.01 [K Means Clustering] completed')
 
-# %%
 # =============================================================================
 # 04.05.02 | Pivot table to see see how clusters compare to categories
 # =============================================================================
