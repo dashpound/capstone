@@ -39,6 +39,7 @@ from environment_configuration import set_palette
 from functions import clean_docs
 from functions import gen_jlines
 from environment_configuration import RANDOM_SEED
+from functions import cluster_and_plot
 
 print('Script: 04.00.02 [Import Packages] completed')
 
@@ -54,7 +55,10 @@ create_jlines = 'y'
 # Configure to 'n' in production
 sampleit = 'y'
 # Number of records to sample if sampleit is 'y'
-num_2_samp = 2
+num_2_samp = 200
+
+#Set number of clusters
+k = 4
 
 # Sampling function
 if sampleit == 'y':
@@ -197,7 +201,6 @@ print('Script: 04.04.01 [Sklearn TFIDF, write tfidf] completed')
 # 04.05.01 | K Means Clustering - TFIDF
 # =============================================================================
 # Set number of clusters
-k = 2
 km = KMeans(n_clusters=k, random_state=RANDOM_SEED)
 km.fit(TFIDF_matrix)
 clusters = km.labels_.tolist()
@@ -222,9 +225,10 @@ pivot = pd.pivot_table(frame, values='record', index='labels',
 
 print(pivot)
 
+pivot.to_csv("../output/clusters/clusters_tfidf.csv")
+
 print('Script: 04.05.02 [K Means Pivot] completed')
 
-# %%
 # =============================================================================
 # 04.05.03 | Top Terms per cluster
 # =============================================================================
@@ -252,170 +256,29 @@ for i in range(k):
         temp_terms.append(terms[ind])
     cluster_terms[i] = temp_terms
 
-    # print("Cluster %d titles:" % i, end='')
-    # temp = frame[frame['Cluster'] == i]
-    # for title in temp['Reviewer']:
-    #     print(' %s,' % title, end='')
-    #     temp_titles.append(title)
-    # cluster_title[i] = temp_titles
+    print("Cluster %d titles:" % i, end='')
+    temp=frame[frame['Cluster']==i]
+    for title in temp['Cluster']:
+        #print(' %s,' % title, end='')
+        temp_titles.append(title)
+    cluster_title[i]=temp_titles
 
 print('Script: 04.05.03 [Top terms per cluster] completed')
-#
-# # %%
-# # =============================================================================
-# # TF-IDF Plotting - mds algorithm
-# # =============================================================================
-#
-# # convert two components as we're plotting points in a two-dimensional plane
-# # "precomputed" because we provide a distance matrix
-# # we will also specify `random_state` so the plot is reproducible.
-#
-# mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
-# # mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
-#
-# dist = 1 - cosine_similarity(TFIDF_matrix)
-#
-# pos = mds.fit_transform(dist)  # shape (n_components, n_samples)
-#
-# xs, ys = pos[:, 0], pos[:, 1]
-#
-# # set up colors per clusters using a dict.  number of colors must correspond to K
-# cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
-#                   5: 'red', 6: 'darksalmon', 7: 'sienna'}
-#
-# # set up cluster names using a dict.
-# cluster_dict = cluster_title
-#
-# # create data frame that has the result of the MDS plus the cluster numbers and titles
-# df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=range(0, len(clusters))))
-#
-# # group by cluster
-# groups = df.groupby('label')
-#
-# fig, ax = plt.subplots(figsize=(12, 12))  # set size
-# ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
-#
-# # iterate through groups to layer the plot
-# # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
-# for name, group in groups:
-#     ax.plot(group.x, group.y,
-#             marker='o', linestyle='', ms=12,
-#             label=cluster_dict[name], color=cluster_colors[name],
-#             mec='none')
-#     ax.set_aspect('auto')
-#     ax.tick_params( \
-#         axis='x',  # changes apply to the x-axis
-#         which='both',  # both major and minor ticks are affected
-#         bottom=False,  # ticks along the bottom edge are off
-#         top=False,  # ticks along the top edge are off
-#         labelbottom=True)
-#     ax.tick_params( \
-#         axis='y',  # changes apply to the y-axis
-#         which='both',  # both major and minor ticks are affected
-#         left=False,  # ticks along the bottom edge are off
-#         top=False,  # ticks along the top edge are off
-#         labelleft=True)
-#
-# plt.title('TF-IDF Clustering | MDS Algorithm')
-# # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
-#
-# # The following section of code is to run the k-means algorithm on the doc2vec outputs.
-# # note the differences in document clusters compared to the TFIDF matrix.
-#
-# print('TF-IDF | MDS | Plot clusters complete -----------------------------------------------')
-#
-# # %%
-# # =============================================================================
-# # TF-IDF Plotting - TSNE algorithm
-# # =============================================================================
-#
-# # convert two components as we're plotting points in a two-dimensional plane
-# # "precomputed" because we provide a distance matrix
-# # we will also specify `random_state` so the plot is reproducible.
-#
-# # mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
-# mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
-#
-# dist = 1 - cosine_similarity(TFIDF_matrix)
-#
-# pos = mds.fit_transform(dist)  # shape (n_components, n_samples)
-#
-# xs, ys = pos[:, 0], pos[:, 1]
-#
-# # set up colors per clusters using a dict.  number of colors must correspond to K
-# cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
-#                   5: 'red', 6: 'darksalmon', 7: 'sienna'}
-#
-# # set up cluster names using a dict.
-# cluster_dict = cluster_title
-#
-# # create data frame that has the result of the MDS plus the cluster numbers and titles
-# df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=range(0, len(clusters))))
-#
-# # group by cluster
-# groups = df.groupby('label')
-#
-# fig, ax = plt.subplots(figsize=(12, 12))  # set size
-# ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
-#
-# # iterate through groups to layer the plot
-# # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
-# for name, group in groups:
-#     ax.plot(group.x, group.y,
-#             marker='o', linestyle='', ms=12,
-#             label=cluster_dict[name], color=cluster_colors[name],
-#             mec='none')
-#     ax.set_aspect('auto')
-#     ax.tick_params( \
-#         axis='x',  # changes apply to the x-axis
-#         which='both',  # both major and minor ticks are affected
-#         bottom=False,  # ticks along the bottom edge are off
-#         top=False,  # ticks along the top edge are off
-#         labelbottom=True)
-#     ax.tick_params( \
-#         axis='y',  # changes apply to the y-axis
-#         which='both',  # both major and minor ticks are affected
-#         left=False,  # ticks along the bottom edge are off
-#         top=False,  # ticks along the top edge are off
-#         labelleft=True)
-#
-# plt.title('TF-IDF Clustering | TSNE Algorithm')
-# # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
-#
-# print('TF-IDF | TSNE | Plot clusters complete -----------------------------------------------')
-# # %%
-# # =============================================================================
-# # K Means Clustering - Terms - TFIDF
-# # =============================================================================
-# # =============================================================================
-# # Sklearn TFIDF
-# # =============================================================================
-#
-# # note the ngram_range will allow you to include multiple words within the TFIDF matrix
-# # Call Tfidf Vectorizer
-# Tfidf = TfidfVectorizer(ngram_range=(1, 1))
-#
-# # fit the vectorizer using final processed documents.  The vectorizer requires the
-# # stiched back together document.
-#
-# TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
-#
-# # creating datafram from TFIDF Matrix
-# matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=titles)
-#
-# print('Sklearn TFIDF complete -----------------------------------------------')
-#
-# matrix = matrix.transpose()
-#
-# k = 2
-# km = KMeans(n_clusters=k, random_state=RANDOM_SEED)
-# km.fit(matrix)
-# clusters = km.labels_.tolist()
-#
-# terms = Tfidf.get_feature_names()
-# Dictionary = {'Doc Name': terms, 'Cluster': clusters}
-# frame = pd.DataFrame(Dictionary, columns=['Cluster', 'Doc Name'])
-#
-# # matrix=matrix.sample(n=1000, replace=False, random_state =RANDOM_SEED)
-#
-# print('Terms - TF-IDF Kmeans Clustering Complete -------------------------------------------')
+
+# =============================================================================
+# 04.06.01 | TF-IDF Plotting - mds algorithm
+# =============================================================================
+# convert two components as we're plotting points in a two-dimensional plane
+# "precomputed" because we provide a distance matrix
+# we will also specify `random_state` so the plot is reproducible.
+
+mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
+cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'precomputed')
+print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
+
+# =============================================================================
+# 04.06.02 | TF-IDF Plotting - mds algorithm
+# =============================================================================
+mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
+cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'euclidean')
+print('Script: 04.06.02 [TF-IDF Plot Plotted] completed')
