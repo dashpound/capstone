@@ -14,6 +14,17 @@
 # 00.01.02 | Import packages
 # =============================================================================
 import pandas as pd
+import re,string
+from nltk.corpus import stopwords
+
+# Import packages
+import re, string
+from nltk.corpus import stopwords
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+from sklearn.metrics.pairwise import cosine_similarity
 
 # =============================================================================
 # 00.02.01 | Convert Pivot to Data Frame
@@ -73,18 +84,18 @@ def collect_text(df, groupby_column, return_column):
             """for each row in the dataframe take the requested column and concatenate it together"""
             temp_text = f[return_column].iloc[j]
             agg_values.append(temp_text)
-            #print(agg_values)
         """Concatenate all the items such that there is one row and one column per"""
         separator = ', '
         by_group.append(separator.join(agg_values))
         label_store.append(uniquez[i])
         a = dict(zip(label_store, by_group))
+        #print('Row:', i, "completed")
     return a
 
 print('Script: 00.03.02 [Collect Text] Defined')
 
 # =============================================================================
-# 00.03.04 | Define Generate jsonlines function
+# 00.03.03 | Define Generate jsonlines function
 # =============================================================================
 
 def gen_jlines(headers, dataframe, output):
@@ -97,5 +108,62 @@ def gen_jlines(headers, dataframe, output):
                   lines=True)
     return cr_df
 
-print('Script: 00.03.04 [Generate Jsonlines] Defined')
+print('Script: 00.03.03 [Generate Jsonlines] Defined')
+
+# =============================================================================
+# 00.03.04 | Cluster and Plot NLP
+# =============================================================================
+
+def cluster_and_plot(mds_alg, TFIDF_matrix, clusters, cluster_title,output):
+    mds_alg
+    dist = 1 - cosine_similarity(TFIDF_matrix)
+    pos = mds_alg.fit_transform(dist)  # shape (n_components, n_samples)
+    xs, ys = pos[:, 0], pos[:, 1]
+    print('Function: 00.03.04 [TF-IDF set clustering plot] completed')
+
+    # set up colors per clusters using a dict.  number of colors must correspond to K
+    cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
+                      5: 'red', 6: 'darksalmon', 7: 'sienna'}
+
+    # set up cluster names using a dict.
+    cluster_dict = cluster_title
+    print('Function: 00.03.04 [TF-IDF set colors for plot] completed')
+
+    # create data frame that has the result of the MDS plus the cluster numbers and titles
+    df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=range(0, len(clusters))))
+
+    # group by cluster
+    groups = df.groupby('label')
+
+    fig, ax = plt.subplots(figsize=(12, 12))  # set size
+    ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
+    print('Function: 00.03.04  [TF-IDF Stage the data] completed')
+
+    # iterate through groups to layer the plot
+    # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return the appropriate color/label
+    for name, group in groups:
+        ax.plot(group.x, group.y,
+                marker='o', linestyle='', ms=12,
+                label=cluster_dict[name], color=cluster_colors[name],
+                mec='none')
+        ax.set_aspect('auto')
+        ax.tick_params( \
+            axis='x',  # changes apply to the x-axis
+            which='both',  # both major and minor ticks are affected
+            bottom=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            labelbottom=True)
+        ax.tick_params( \
+            axis='y',  # changes apply to the y-axis
+            which='both',  # both major and minor ticks are affected
+            left=False,  # ticks along the bottom edge are off
+            top=False,  # ticks along the top edge are off
+            labelleft=True)
+
+    plt.title('TF-IDF Clustering | MDS Algorithm')
+    # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
+    # The following section of code is to run the k-means algorithm on the doc2vec outputs.
+    # note the differences in document clusters compared to the TFIDF matrix.
+    plt.savefig('../output/clusters/' + output + '.png')
+    plt.show()
 
