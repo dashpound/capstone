@@ -1,7 +1,7 @@
 # ===============================================================================
 # 04.00.01 | Individual Review & Aggregated Reviewer Features | Documentation
 # ===============================================================================
-# Name:               Individual Review & Reviewer Features
+# Name:               Individual Review & Aggregated Reviewer Features
 # Author:             Hemant Patel
 # Last Edited Date:   10/26/19
 # Description:        Create relevant review and aggregate reviewer features from the reviews dataset.
