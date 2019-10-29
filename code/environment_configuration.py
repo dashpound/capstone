@@ -57,6 +57,16 @@ print('Script: 01.01.03 [Update Data Paths] completed')
 # =============================================================================
 # 01.01.04 | Define Other Global Variables
 # =============================================================================
+
+# set seed for reproducability
+RANDOM_SEED = 42
+
+print('Script: 01.01.04 [Define Other Global Variables] completed')
+
+
+# =============================================================================
+# 01.01.05 | Define Functions
+# =============================================================================
 # custom color palette
 def set_palette():
     my_palette = sns.color_palette() # 10 colors
@@ -74,7 +84,35 @@ def set_levels(df, col):
             df.loc[col == i] = 'Other'
     return df
 
-# set seed for reproducability
-RANDOM_SEED = 42
+# define styling for plots
+def plot_params():
+    sns.set(font_scale=1.25)
+    sns.set_style("darkgrid")
+    plt.gca().xaxis.grid(True)
+    plt.rcParams['font.weight'] = "bold"
+    plt.rcParams['font.sans-serif'] = "Calibri"
 
-print('Script: 01.01.04 [Define Other Global Variables] completed')
+# function for labeling bars - both vertical and horizontal
+# https://stackoverflow.com/questions/43214978/seaborn-barplot-displaying-values
+def show_values_on_bars(axs, h_v="v", space=0.4):
+    def _show_on_single_plot(ax):
+        if h_v == "v":
+            for p in ax.patches:
+                _x = p.get_x() + p.get_width() / 2
+                _y = p.get_y() + p.get_height()
+                value = int(p.get_height())
+                ax.text(_x, _y, value, ha="center") 
+        elif h_v == "h":
+            for p in ax.patches:
+                _x = p.get_x() + p.get_width() + float(space)
+                _y = p.get_y() + p.get_height() 
+                value = int(p.get_width())
+                ax.text(_x, _y, value, ha="left")
+
+    if isinstance(axs, np.ndarray):
+        for idx, ax in np.ndenumerate(axs):
+            _show_on_single_plot(ax)
+    else:
+        _show_on_single_plot(axs)
+
+print('Script: 01.01.05 [Define Functions] completed')
