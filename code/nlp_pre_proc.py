@@ -28,6 +28,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matplotlib.pyplot as plt
 import os
 import io
+import gc
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import numpy as np
 import json_lines
@@ -74,6 +75,7 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
+    out_file_name = "../data/jsonlines/collection_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
     headers = ['reviewerID', 'reviewText']
@@ -102,7 +104,7 @@ with open(out_file_name, 'rb') as f:
 
 # The read in creates two dataframes one for labels, one for position; this just joins them together by position
 data = pd.concat([pd.DataFrame(labels),pd.DataFrame(text)], axis=1)
-print(len(data))
+print('Records in readin file: ', len(data))
 print('Script: 04.02.01 [Readin jsonlines file] completed')
 
 # =============================================================================
@@ -117,9 +119,8 @@ print('Script: 04.02.01 [Readin jsonlines file] completed')
 ##else:
 #    print('Script: 04.02.02 [NLP dataframe sample] skipped')
 
-# I dont think i need this, probably delete
+# TODO I dont think i need this, probably delete
 data=data.reset_index()
-print(len(data))
 
 # =============================================================================
 # 04.03.01 | Stage text for cleansing
@@ -165,7 +166,7 @@ for i in processed_text:
 # Final section of code has 3 lists used.  2 of which are used for further processing.
 # (1) text_body - unused, (2) processed_text (used in W2V),
 # (3) final_processed_text (used in TFIDF), and (4) DSI titles (used in TFIDF Matrix)
-
+gc.collect()
 print('Script: 04.03.03 [Rebuilt text post processing] completed')
 
 # =============================================================================
