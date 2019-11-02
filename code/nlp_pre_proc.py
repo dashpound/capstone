@@ -49,22 +49,24 @@ print('Script: 04.00.02 [Import Packages] completed')
 # Generate jsonlines file, configure to n to skip
 # Note: This really only needs to be run once & then stored as part of teh repository
 # Default to 'n"
-create_jlines = 'y'
+create_jlines = 'n'
 
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
-sampleit = 'y'
+sampleit = 'n'
 # Number of records to sample if sampleit is 'y'
-num_2_samp = 200
+
+num_2_samp = 10000
 
 #Set number of clusters
-k = 4
+k = 10
 
 # Sampling function
 if sampleit == 'y':
     reviews_df = reviews_df.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
+    print('Sample size:', len(reviews_df))
 else:
-    pass
+    print('Unsampled size:', len(reviews_df))
 
 print('Script: 04.00.03 [Sampling mode settings set] completed')
 
@@ -76,9 +78,9 @@ if create_jlines == 'n':
 else:
     headers = ['reviewerID', 'reviewText']
     if sampleit == 'y':
-        out_file_name = "../data/jsonlines/collection_reviews2.jsonlines"
+        out_file_name = "../data/jsonlines/collection_reviews2.jsonl"
     else:
-        out_file_name = "../data/jsonlines/collection_reviews.jsonlines"
+        out_file_name = "../data/jsonlines/collection_reviews.jsonl"
     nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
     print('Script: 04.01.01 [Create jsonlines file] completed')
 
@@ -100,7 +102,7 @@ with open(out_file_name, 'rb') as f:
 
 # The read in creates two dataframes one for labels, one for position; this just joins them together by position
 data = pd.concat([pd.DataFrame(labels),pd.DataFrame(text)], axis=1)
-
+print(len(data))
 print('Script: 04.02.01 [Readin jsonlines file] completed')
 
 # =============================================================================
@@ -108,14 +110,16 @@ print('Script: 04.02.01 [Readin jsonlines file] completed')
 # =============================================================================
 # Samples the dataframe for quick active development; this will be disabled once development is done
 
-if sampleit == 'y':
-    data=data.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
-    print('Script: 04.02.02 [NLP dataframe sample] completed')
-else:
-    print('Script: 04.02.02 [NLP dataframe sample] skipped')
+#if sampleit == 'y':
+#    data=data.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
+#    print(len(data))
+#    print('Script: 04.02.02 [NLP dataframe sample] completed')
+##else:
+#    print('Script: 04.02.02 [NLP dataframe sample] skipped')
 
 # I dont think i need this, probably delete
 data=data.reset_index()
+print(len(data))
 
 # =============================================================================
 # 04.03.01 | Stage text for cleansing
