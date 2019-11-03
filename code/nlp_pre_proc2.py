@@ -50,12 +50,13 @@ print('Script: 04.00.02 [Import Packages] completed')
 # Generate jsonlines file, configure to n to skip
 # Note: This really only needs to be run once & then stored as part of teh repository
 # Default to 'n"
-create_jlines = 'n'
+create_jlines = 'y'
 
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
 sampleit = 'n'
-# Number of records to sample if sampleit is 'y'
+# Filter to category if this is set to is 'y'
+filterit = 'y'
 
 num_2_samp = 10
 
@@ -63,7 +64,13 @@ num_2_samp = 10
 k = 10
 
 MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
-VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
+VECTOR_LENGTH = 128  # set vector length for TF-IDF and Doc2Vec
+
+if filterit == 'y':
+    reviews_df = reviews_df[reviews_df['category2_t']=='Camera & Photo']
+    print('Filtered to Camera & Photos')
+else:
+    pass
 
 # Sampling function
 if sampleit == 'y':
@@ -78,14 +85,14 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
-    out_file_name = "../data/jsonlines/items_reviews.jsonl"
+    out_file_name = "../data/jsonlines/items_cameras_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
     headers = ['asin', 'reviewText']
     if sampleit == 'y':
-        out_file_name = "../data/jsonlines/items_reviews2.jsonl"
+        out_file_name = "../data/jsonlines/items_cameras_reviews2.jsonl"
     else:
-        out_file_name = "../data/jsonlines/items_reviews.jsonl"
+        out_file_name = "../data/jsonlines/items_cameras_reviews.jsonl"
     nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
     print('Script: 04.01.01 [Create jsonlines file] completed')
 
