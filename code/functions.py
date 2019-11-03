@@ -122,8 +122,8 @@ def cluster_and_plot(mds_alg, TFIDF_matrix, clusters, cluster_title,output):
     print('Function: 00.03.04 [TF-IDF set clustering plot] completed')
 
     # set up colors per clusters using a dict.  number of colors must correspond to K
-    cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'rosybrown', 4: 'firebrick',
-                      5: 'red', 6: 'darksalmon', 7: 'sienna'}
+    cluster_colors = {0: 'black', 1: 'orange', 2: 'blue', 3: 'brown', 4: 'green',
+                      5: 'red', 6: 'pink', 7: 'yellow', 8: 'green', 9: 'purple'}
 
     # set up cluster names using a dict.
     cluster_dict = cluster_title
