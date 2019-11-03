@@ -54,7 +54,7 @@ def clean_docs(doc):
     # remove remaining tokens that are not alphabetic
     tokens = [word for word in tokens if word.isalpha()]
     # filter out short tokens
-    tokens = [word for word in tokens if len(word) > 4]
+    tokens = [word for word in tokens if len(word) > 2]
     tokens = [word for word in tokens if len(word) < 21]
     #lowercase all words
     tokens = [word.lower() for word in tokens]

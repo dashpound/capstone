@@ -62,7 +62,7 @@ num_2_samp = 10000
 #Set number of clusters
 k = 10
 
-MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
+MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
 VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
 
 # Sampling function

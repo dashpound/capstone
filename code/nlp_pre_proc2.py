@@ -50,7 +50,7 @@ print('Script: 04.00.02 [Import Packages] completed')
 # Generate jsonlines file, configure to n to skip
 # Note: This really only needs to be run once & then stored as part of teh repository
 # Default to 'n"
-create_jlines = 'y'
+create_jlines = 'n'
 
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
@@ -62,7 +62,7 @@ num_2_samp = 10
 #Set number of clusters
 k = 10
 
-MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
+MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
 VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
 
 # Sampling function
