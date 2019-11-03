@@ -45,7 +45,7 @@ data_path = '/data'
 modeling_path = '../output/models'
 
 # define data paths
-reviews_path = '/reviewsdata_5.pkl'
+reviews_path = '/reviews_meta_combined_individual.pkl'
 metadata_path = '/metadata.pkl'
 qa_path = '/QA_data.pkl'
 products_clean_path = '/product_metadata_no_one_hot_encoding.pkl'

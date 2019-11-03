@@ -55,7 +55,8 @@ create_jlines = 'n'
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
 sampleit = 'n'
-# Number of records to sample if sampleit is 'y'
+# Filter to category if this is set to is 'y'
+filterit = 'y'
 
 num_2_samp = 10000
 
@@ -63,7 +64,13 @@ num_2_samp = 10000
 k = 10
 
 MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
-VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
+VECTOR_LENGTH = 128  # set vector length for TF-IDF and Doc2Vec
+
+if filterit == 'y':
+    reviews_df = reviews_df[reviews_df['category2_t']=='Camera & Photo']
+    print('Filtered to Camera & Photos')
+else:
+    pass
 
 # Sampling function
 if sampleit == 'y':
@@ -78,14 +85,14 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
-    out_file_name = "../data/jsonlines/collection_reviews.jsonl"
+    out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
     headers = ['reviewerID', 'reviewText']
     if sampleit == 'y':
-        out_file_name = "../data/jsonlines/collection_reviews2.jsonl"
+        out_file_name = "../data/jsonlines/collection_camera_reviews2.jsonl"
     else:
-        out_file_name = "../data/jsonlines/collection_reviews.jsonl"
+        out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
     nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
     print('Script: 04.01.01 [Create jsonlines file] completed')
 
@@ -271,6 +278,8 @@ for i in range(k):
 
 print('Script: 04.05.03 [Top terms per cluster] completed')
 
+
+
 # =============================================================================
 # 04.06.01 | TF-IDF Plotting - mds algorithm
 # =============================================================================
@@ -288,3 +297,5 @@ print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
 mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
 cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'euclidean')
 print('Script: 04.06.02 [TF-IDF Plot Plotted] completed')
+
+exec(open("./code/nlp_pre_proc2.py").read());
