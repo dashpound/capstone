@@ -1,17 +1,23 @@
-# Project Title
+# Amazon Recommendation Engine
 
-One Paragraph of project description goes here
+Since its inception nearly 25 years ago, Amazon has been focused on delivering a world class customer experience. In a world where consumer choice is paramount, Amazon continues to need better ways to target new and existing customers by presenting them with products they are most likely to purchase. The key to solving this problem lies in one of Amazon’s greatest data assets: customer reviews.
+
+Amazon has a subset of customers who write reviews about their purchased products (reviewers). Reviewers tend to be more engaged with Amazon’s platform, giving Amazon the ability to increase product exposure with this segment. By mining historical reviews for information on product preference and sentiment, Amazon can understand and utilize reviewer preference to develop a more personalized product recommendation experience for each reviewer. 
+
+Disclaimer: This project was completed as part of the MSDS 498 Capstone Project course within the Northwestern University. All data, dashboards, and insights used throughout this project are completely simulated and not in any way connected to or a reﬂection of Amazon. Please do not duplicate or distribute outside of the context of this course. 
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
 
 ### Prerequisites
 
 What things you need to install the software and how to install them
 
 ```
-Give examples
+nltk
+python3.x
 ```
 
 ### Installing
