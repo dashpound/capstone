@@ -65,6 +65,8 @@ k = 10
 MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
 VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
 
+trainit = 'n'
+
 # Sampling function
 if sampleit == 'y':
     reviews_df = reviews_df.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
@@ -185,6 +187,7 @@ for i in range(0,len(data)):
     labels.append(temp_text)
 
 print('Script: 04.03.04 [Itemize labels] completed')
+
 
 # =============================================================================
 # 04.04.01 | Sklearn TFIDF
