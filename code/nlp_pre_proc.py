@@ -28,6 +28,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import matplotlib.pyplot as plt
 import os
 import io
+import gc
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import numpy as np
 import json_lines
@@ -61,6 +62,9 @@ num_2_samp = 10000
 #Set number of clusters
 k = 10
 
+MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
+VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
+
 # Sampling function
 if sampleit == 'y':
     reviews_df = reviews_df.sample(n=num_2_samp, replace=False, random_state=RANDOM_SEED)
@@ -74,6 +78,7 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
+    out_file_name = "../data/jsonlines/collection_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
     headers = ['reviewerID', 'reviewText']
@@ -102,7 +107,7 @@ with open(out_file_name, 'rb') as f:
 
 # The read in creates two dataframes one for labels, one for position; this just joins them together by position
 data = pd.concat([pd.DataFrame(labels),pd.DataFrame(text)], axis=1)
-print(len(data))
+print('Records in readin file: ', len(data))
 print('Script: 04.02.01 [Readin jsonlines file] completed')
 
 # =============================================================================
@@ -117,9 +122,8 @@ print('Script: 04.02.01 [Readin jsonlines file] completed')
 ##else:
 #    print('Script: 04.02.02 [NLP dataframe sample] skipped')
 
-# I dont think i need this, probably delete
+# TODO I dont think i need this, probably delete
 data=data.reset_index()
-print(len(data))
 
 # =============================================================================
 # 04.03.01 | Stage text for cleansing
@@ -187,8 +191,7 @@ print('Script: 04.03.04 [Itemize labels] completed')
 # =============================================================================
 # note the ngram_range will allow you to include multiple words within the TFIDF matrix
 # Call Tfidf Vectorizer
-Tfidf = TfidfVectorizer(ngram_range=(1, 1))
-
+Tfidf = TfidfVectorizer(ngram_range=(1, MAX_NGRAM_LENGTH), max_features=VECTOR_LENGTH)
 # fit the vectorizer using final processed documents.  The vectorizer requires the
 # stiched back together document.
 
@@ -198,14 +201,13 @@ TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
 matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=labels)
 
 matrix.to_csv("../data/tfidf/tfidf_matrix.csv")
-
 print('Script: 04.04.01 [Sklearn TFIDF, write tfidf] completed')
 
 # =============================================================================
 # 04.05.01 | K Means Clustering - TFIDF
 # =============================================================================
 # Set number of clusters
-km = KMeans(n_clusters=k, random_state=RANDOM_SEED)
+km = KMeans(n_clusters=k, random_state=RANDOM_SEED, n_jobs=-1)
 km.fit(TFIDF_matrix)
 clusters = km.labels_.tolist()
 
@@ -275,7 +277,7 @@ print('Script: 04.05.03 [Top terms per cluster] completed')
 # "precomputed" because we provide a distance matrix
 # we will also specify `random_state` so the plot is reproducible.
 
-mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED)
+mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED, n_jobs=-1)
 cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'precomputed')
 print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
 
