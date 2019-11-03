@@ -50,7 +50,7 @@ print('Script: 04.00.02 [Import Packages] completed')
 # Generate jsonlines file, configure to n to skip
 # Note: This really only needs to be run once & then stored as part of teh repository
 # Default to 'n"
-create_jlines = 'y'
+create_jlines = 'n'
 
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
