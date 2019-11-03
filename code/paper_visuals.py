@@ -1,3 +1,32 @@
+# ===============================================================================
+# 07.00.01 | Paper Visuals | Documentation
+# ===============================================================================
+# Name:               07_product_metadata_features
+# Author:             Rodd
+# Last Edited Date:   11/3/19
+# Description:        Create EDA visuals to use in papers.
+#                     
+# Notes:              Have not saved these visuals to the output folder - that is a next level enhancement.
+#                     
+#
+# Warnings:           Did not work to clean up the blank plot that is generated with some of the visuals.
+#
+#
+# Outline:            Imports needed packages and objects from other scripts & set plot params and palette.
+#                     Create a combined product and reviews data frame for visualization.
+#                     Create a reviews by rating visual for Data Overview section.
+#                     Prepare top-level category data for visualization.
+#                     Generate reviews and products plots using top-level category.
+#                     Perform data prep to show product data missingness.
+#                     Create plot for product data missingness.
+#                     Create a category 2 plot by products.
+#                     Create a plot for average rating for each product.
+#                     Generate average ratings violin plot showed in project goals document.
+#
+#
+# ===============================================================================
+# 07.00.02 | Import packages and define global params
+# ===============================================================================
 # Import packages
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
@@ -5,16 +34,26 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 import gc
-import pickle
 
 # Import modules (other scripts)
-from data_load import reviews_df, metadata_df, qa_df
-from environment_configuration import set_palette, set_levels, show_values_on_bars, plot_params
-from functions import conv_pivot2df
+from data_load import reviews_df, metadata_df
+from clean_data_load import products_clean
+from environment_configuration import show_values_on_bars, plot_params
+from eda import base_pivot
 
+# need to call plot_params
+plot_params()
+
+# defining color palette this way so we can more readily pick off colors
+my_palette = sns.color_palette()
+
+print('Script: 07.00.02 [Import Packages] completed')
 
 # =============================================================================
-# 05.01.01 | Create product and reviews data frame
+# Initial Findings Visuals
+# =============================================================================
+# =============================================================================
+# 07.01.01 | Create product and reviews data frame
 # =============================================================================
 # make a copy for data prep
 product_df = metadata_df.copy()
@@ -29,13 +68,12 @@ product_df = pd.concat([product_df, categories_df], axis=1)
 # join this to the reviews data set so we can generate plots using the category
 product_reviews_combined = pd.merge(product_df, reviews_df, on='asin',how='inner')
 
+print('Script: 07.01.01 [Product and reviews data] completed')
 
 # =============================================================================
-# 05.02.01 | Reviews by Rating Visual
+# 07.02.01 | Reviews by Rating Visual
 # =============================================================================
 review_byrating_sum = product_reviews_combined.groupby('overall').size().to_frame('reviews').reset_index()
-
-my_palette = sns.color_palette()
 
 fig, ax = plt.subplots(1, 1, figsize = (8,4))
 ax.set_ylim(1, 5) # sets start of y-axis to 1 instead of 0
@@ -44,8 +82,7 @@ plt.title('Reviews by Product Rating',fontweight='bold')
 plt.xlabel('Number of Reviews',fontweight='bold')
 plt.ylabel('Product Rating',fontweight='bold')
 # format axis so that thousands show up with a K
-xlabels = ['{:,.0f}'.format(x) + 'K' for x in ax.get_xticks()/1000]
-ax.set_xticklabels(xlabels)
+ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 # add percentage labels to plot
 total = sum(review_byrating_sum['reviews'])
 for p in ax.patches:
@@ -56,9 +93,11 @@ for p in ax.patches:
 plt.tight_layout()
 plt.show()
 
+print('Script: 07.02.01 [Reviews by product rating visual] completed')
+
 
 # =============================================================================
-# 05.03.01 | Top Level Category Data Frames
+# 07.03.01 | Top Level Category Data Frames
 # =============================================================================
 cat1_sum = product_reviews_combined.groupby('category1').size().to_frame('reviews').reset_index().sort_values('reviews', ascending=False)
 cat1_product_sum = product_reviews_combined.groupby('category1').aggregate({'asin': pd.Series.nunique}).reset_index().sort_values('asin', ascending=False)
@@ -76,8 +115,11 @@ cat1_product_sum['category1'] = cat1_product_sum['category1'].map({'Cell Phones 
                                                    'Clothing, Shoes & Jewelry': 'Clothing,\nShoes & Jewelry',
                                                    'Electronics': 'Electronics', 'Automotive':'Automotive'})
 
+print('Script: 07.03.01 [Top-level category data prep] completed')
+
+
 # =============================================================================
-# 05.03.02 | Top Level Category Plots
+# 07.03.02 | Top Level Category Plots
 # =============================================================================
 fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (15,4))
 
@@ -91,6 +133,8 @@ ax1.set_xlabel('',fontweight='bold')
 ax1.set_ylabel('Products',fontweight='bold')
 # add labels to plot
 show_values_on_bars(sns_b, "v")
+# set axis labels
+ax1.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 
 # top level category by review
 ax2 = axes[1]
@@ -103,10 +147,14 @@ ax2.set_xlabel('',fontweight='bold')
 ax2.set_ylabel('Reviews',fontweight='bold')
 # add labels to plot
 show_values_on_bars(sns_b, "v")
+# set axis labels
+ax2.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
+
+print('Script: 07.03.02 [Top-level category plots] completed')
 
 
 # =============================================================================
-# 05.04.01 | Product Data Missingness
+# 07.04.01 | Product Data Missingness Data Prep
 # =============================================================================
 product_df = metadata_df.copy()
 
@@ -138,6 +186,12 @@ product_df2 = pd.concat([product_df2, sales_rank_vars['Electronics']], axis=1)
 # rename the electronics column
 product_df2.rename(columns={'Electronics':'electronicsSalesRank'}, inplace=True)
 
+print('Script: 07.04.01 [Product data missingness data prep] completed')
+
+
+# =============================================================================
+# 07.04.02 | Product Data Missingness Plot
+# =============================================================================
 total_products = product_df2['asin'].nunique()
 missing_sum = product_df2.isnull().sum().to_frame('numberMissing').reset_index().sort_values('numberMissing', ascending=True)
 
@@ -147,9 +201,7 @@ plt.title('Product Metadata Missingness',fontweight='bold')
 plt.xlabel('Number of Products',fontweight='bold')
 plt.ylabel('',fontweight='bold')
 # format axis so that thousands show up with a K
-#xlabels = ['{:,.0f}'.format(x) + 'K' for x in ax.get_xticks()/1000]
-#ax.set_xticklabels(xlabels)
-# add percentage labels to plot
+ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
 for p in ax.patches:
         percentage = '{:.0f}%'.format(100 * p.get_width()/total_products)
         x = p.get_x() + p.get_width() + 0.02
@@ -158,26 +210,65 @@ for p in ax.patches:
 plt.tight_layout()
 plt.show()
 
+print('Script: 07.04.02 [Product data missingness plot] completed')
 
 
 # =============================================================================
-# 05.06.01 | Violin Plot of Avg Ratings - From Project Goals
+# 07.05.01 | Category 2 Distribution
 # =============================================================================
-# THIS STILL HAS TO BE CLEANED UP!
+product_cat2_sum = product_reviews_combined.groupby('category2_t').aggregate({'asin': pd.Series.nunique}).reset_index().sort_values('asin', ascending=True)
+
+fig, ax = plt.subplots(1, 1, figsize = (8,4))
+ax = product_cat2_sum.plot("category2_t", "asin", kind="barh", color = my_palette[2], legend=None)
+plt.title('Products by Category 2',fontweight='bold')  
+plt.xlabel('Number of Products',fontweight='bold')
+plt.ylabel('',fontweight='bold')
+# format axis so that thousands show up with a K
+ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:,.0f}'.format(x/1000) + 'K'))
+# add percentage labels to plot
+total = sum(product_cat2_sum['asin'])
+for p in ax.patches:
+        percentage = '{:.0f}%'.format(100 * p.get_width()/total)
+        x = p.get_x() + p.get_width() + 0.02
+        y = p.get_y() + p.get_height()/2
+        ax.annotate(percentage, (x, y))
+plt.tight_layout()
+plt.show()
+
+print('Script: 07.04.01 [Category 2 distribution plot] completed')
+
+
+# =============================================================================
+# 07.06.01 | Products by Average Rating
+# =============================================================================
+product_avgrating_sum = products_clean.groupby('meanStarRating').aggregate({'asin': pd.Series.nunique}).reset_index().sort_values('asin', ascending=True)
+
+fig, ax = plt.subplots(1, 1, figsize = (8,4))
+ax = sns.distplot(product_avgrating_sum['meanStarRating'], color = my_palette[2]) 
+plt.title('Average Product Rating for Each Product',fontweight='bold')  
+plt.xlabel('Average Rating',fontweight='bold')
+plt.ylabel('',fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+print('Script: 07.06.01 [Products by average rating] completed')
+
+
+# =============================================================================
+# Project Goals Visuals
+# =============================================================================
+# =============================================================================
+# 07.07.01 | Violin Plot of Avg Ratings
+# =============================================================================
 avg_rating_by_reviewer = base_pivot.groupby('mean').count().reset_index()
 # verified sum(avg_rating_by_reviewer['len']) == 192403
 
 # set plot params for styling
 fig, ax = plt.subplots(1, 1, figsize = (8,4))
-sns.set(font_scale=1.5)
-sns.set_style("whitegrid")
-plt.gca().xaxis.grid(True)
-plt.rcParams['font.weight'] = "bold"
-plt.rcParams['font.sans-serif'] = "Calibri"
 # define the plot
 sns.violinplot(x = base_pivot["mean"], color=my_palette[1]) 
-#sns.lmplot(x="mean", y="len", data=avg_rating_by_reviewer)
-plt.title('Average Product Rating Distribution by Reviewer',fontweight='bold') # bolding isn't working on title for some reason
+plt.title('Average Product Rating Distribution by Reviewer',fontweight='bold') 
 plt.xlabel('Rating')
 plt.xticks(np.arange(1, 6, 1)) # must be max+1
-#plt.ylabel('Number of Unique Reviewers')
+
+print('Script: 07.07.01 [Violin plot of average ratings] completed')

@@ -28,8 +28,6 @@
 # 04.00.02 | Import Modules & Packages
 # =============================================================================
 # Import packages
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pandas as pd
 import gc
@@ -37,10 +35,11 @@ import pickle
 
 # Import modules (other scripts)
 from data_load import reviews_df, metadata_df, qa_df
-from environment_configuration import set_palette, set_levels 
+from environment_configuration import set_levels 
 from functions import conv_pivot2df
 
 print('Script: 04.00.02 [Import Packages] completed')
+
 
 # =============================================================================
 # 04.01.01 | Create product category columns
@@ -56,6 +55,8 @@ categories_df = pd.DataFrame(product_df['categories'].str.get(0).values.tolist()
 
 # add the new category columns back to our original data frame
 product_df = pd.concat([product_df, categories_df], axis=1)
+
+print('Script: 04.01.01 [Create product category columns] completed')
 
 
 # =============================================================================
@@ -78,12 +79,16 @@ product_df['category4_t'].fillna('Unknown', inplace = True)
 product_df['category5_t'].fillna('Unknown', inplace = True)
 product_df['category6_t'].fillna('Unknown', inplace = True)
 
+print('Script: 04.01.012 [Prepare new categories columns] completed')
+
 
 # =============================================================================
 # 04.02.01 | Prepare description data
 # =============================================================================
 # create a binary variable to determine if a product has a description or not
 product_df['hasDescription'] = np.where(product_df['description'].isnull(), 0, 1)
+
+print('Script: 04.02.01 [Prepare description data] completed')
 
 
 # =============================================================================
@@ -95,6 +100,8 @@ price_count = product_df.groupby('price').size().to_frame('products').reset_inde
 # fill the missing values with 0
 product_df['price_t'] = product_df['price'].fillna(0)
 
+print('Script: 04.03.01 [Prepare sale price data] completed')
+
 
 # =============================================================================
 # 04.04.01 | Prepare brand data
@@ -103,6 +110,8 @@ brand_count = product_df.groupby('brand').size().to_frame('products').reset_inde
 # largest brand is Unknown at 3402
 # there is also a brand of nan - plus most do not have a brand - only 142526 have a brand
 # there are 9994 unique brand values - not sure it's worth one hot encoding all of these
+
+print('Script: 04.04.01 [Analyze brand data] completed')
 
 
 # =============================================================================
@@ -128,6 +137,8 @@ electronic_rank_count = product_df.groupby('electronicsSalesRank').size().to_fra
 # create another binary variable
 product_df['containsAnySalesRank'] = np.where(product_df['salesRank'].isnull(), 0, 1)
 
+print('Script: 04.05.01 [Prepare sales rank data] completed')
+
 
 # =============================================================================
 # 04.06.01 | Prepare related data
@@ -137,7 +148,7 @@ product_df['containsAnySalesRank'] = np.where(product_df['salesRank'].isnull(), 
 
 # skipping this on 10/19/19
 
-
+print('Script: 04.06.01 [No related data prep] completed')
 
 
 # =============================================================================
@@ -176,6 +187,8 @@ rating_dist['star3Rating'] = rating_dist['star3Rating'].fillna(0)
 rating_dist['star4Rating'] = rating_dist['star4Rating'].fillna(0)
 rating_dist['star5Rating'] = rating_dist['star5Rating'].fillna(0)
 
+print('Script: 04.07.01 [Create reviews features at a product level] completed')
+
 
 # =============================================================================
 # 04.08.01 | Add in Q/A data
@@ -194,6 +207,8 @@ product_df['numberQuestions'] = product_df['numberQuestions'].fillna(0)
 
 # change data type to int
 product_df['numberQuestions'] = product_df['numberQuestions'].astype(int)
+
+print('Script: 04.08.01 [Question and answer data prep] completed')
 
 
 # =============================================================================
@@ -221,6 +236,8 @@ product_df = product_df.drop(columns_to_remove, axis=1)
 
 product_df_sub = product_df
 
+print('Script: 04.09.01 [Unncessary columns dropped] completed')
+
 
 # =============================================================================
 # 04.10.01 | Join to reviews data for full feature set
@@ -229,61 +246,54 @@ product_df_sub = product_df
 product_final = pd.merge(product_df, product_review_pivot, on='asin', how='inner')
 product_final = pd.merge(product_final, rating_dist, on='asin', how='left')
 
+print('Script: 04.10.01 [Join back to reviews data] completed')
+
 
 # =============================================================================
-# 04.11.01 | Create binned var for electronics rank
+# 04.11.01 | Analyze electronics sales rank data
 # =============================================================================
-# this step will help with missing values b/c can't just set these to a certain val
-# product_final['electronicsSalesRank'].describe()
-
-# use percentiles to create bins
-# the bins include the top number so it would be (0, 66682]
-product_final['electronicsRankBin'] = pd.cut(x=product_final['electronicsSalesRank'], 
-          bins=[0, 8541.75,32031.50,69008.75,810712.],
-          labels=['25thPercentile', '50thPercentile', '75thPercentile', '100thPercentile'])
-
-# have to replace missing values with Unknown
-product_final['electronicsRankBin'] = product_final['electronicsRankBin'].cat.add_categories(["Unknown"])
-product_final['electronicsRankBin'] = product_final['electronicsRankBin'].fillna("Unknown")
-product_final['electronicsRankBin'] = product_final['electronicsRankBin'].astype(str)
+## this step will help with missing values b/c can't just set these to a certain val
+## product_final['electronicsSalesRank'].describe()
+#
+## use percentiles to create bins
+## the bins include the top number so it would be (0, 66682]
+#product_final['electronicsRankBin'] = pd.cut(x=product_final['electronicsSalesRank'], 
+#          bins=[0, 8541.75,32031.50,69008.75,810712.],
+#          labels=['25thPercentile', '50thPercentile', '75thPercentile', '100thPercentile'])
+#
+## have to replace missing values with Unknown
+#product_final['electronicsRankBin'] = product_final['electronicsRankBin'].cat.add_categories(["Unknown"])
+#product_final['electronicsRankBin'] = product_final['electronicsRankBin'].fillna("Unknown")
+#product_final['electronicsRankBin'] = product_final['electronicsRankBin'].astype(str)
+#
 
 # remove the original Electronics Sales Rank var
+# there is a large % of missing values when joining back to the reviews data
 product_final = product_final.drop('electronicsSalesRank', axis=1)
 
 
+print('Script: 04.11.01 [Handle electronics sales rank data] completed')
+
 # =============================================================================
-# 04.10.01 | Save data set
+# 04.12.01 | Save data set
 # =============================================================================
 product_final.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_no_one_hot_encoding.pkl")
 
 # df = pd.read_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_no_one_hot_encoding.pkl")
 
+print('Script: 04.12.01 [Pickle products data] completed')
+
 
 # =============================================================================
-# 04.11.01 | Create One-Hot Encoding for electronicsRankBin
+# 04.13.01 | Start on one-hot encoding
 # =============================================================================
 product_one_hot = product_final
 
-# before we create dummy vars, want to rename the values so that columns are descriptive when spread
-product_one_hot['electronicsRankBin'] = 'electronicsRank' + product_one_hot['electronicsRankBin']
-
-# verify levels
-product_one_hot['electronicsRankBin'].unique()
-
-# get one hot encoding of electronicsRankBin
-# this approach is used over scikit-learn b/c we want column names to be descriptive
-# we do not not want electronicsRank1, electronicsRank2, etc.
-electronics_one_hot = pd.get_dummies(product_one_hot['electronicsRankBin'])
-
-# join the encoded df
-product_one_hot = product_one_hot.join(electronics_one_hot)
-
-# drop electronicsRankBin since it is now encoded
-product_one_hot = product_one_hot.drop('electronicsRankBin',axis = 1)
+print('Script: 04.13.01 [Start on one-hot encoding] completed')
 
 
 # =============================================================================
-# 04.12.01 | Create One-Hot Encoding for category2_t
+# 04.14.01 | Create One-Hot Encoding for category2_t
 # =============================================================================
 # product_one_hot['category2_t'].nunique() - 14
 # product_one_hot['category3_t'].nunique() - 88
@@ -302,18 +312,24 @@ product_one_hot = product_one_hot.join(cat2_one_hot)
 # drop category2_t since it is now encoded
 product_one_hot = product_one_hot.drop('category2_t',axis = 1)
 
+print('Script: 04.14.01 [Create one-hot encoding for category 2_t] completed')
+
 
 # =============================================================================
-# 04.13.01 | Drop Other Columns
+# 04.15.01 | Drop Other Columns
 # =============================================================================
 columns_to_remove = ['category3_t','category4_t','category5_t','category6_t']
 product_one_hot = product_one_hot.drop(columns_to_remove, axis=1)
 
+print('Script: 04.15.01 [Remove other category columns] completed')
+
 
 # =============================================================================
-# 04.14.01 | Save one-hot encoded data set
+# 04.16.01 | Save one-hot encoded data set
 # =============================================================================
 product_one_hot.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_one_hot_encoding.pkl")
+
+print('Script: 04.16.01 [Pickle one-hot encoding data] completed')
 
 
 # =============================================================================

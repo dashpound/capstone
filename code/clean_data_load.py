@@ -29,7 +29,7 @@ from environment_configuration import products_clean_path, products_onehot_path
 import pickle
 import pandas as pd
 from pathlib import Path
-import gc
+
 
 # Create trigger for turning off verify portions of code
 verify = 'n'
