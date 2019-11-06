@@ -3,7 +3,7 @@
 # ===============================================================================
 # Name:               07_product_metadata_features
 # Author:             Rodd
-# Last Edited Date:   11/3/19
+# Last Edited Date:   11/5/19
 # Description:        Create EDA visuals to use in papers.
 #                     
 # Notes:              Have not saved these visuals to the output folder - that is a next level enhancement.
@@ -244,7 +244,7 @@ print('Script: 07.04.01 [Category 2 distribution plot] completed')
 product_avgrating_sum = products_clean.groupby('meanStarRating').aggregate({'asin': pd.Series.nunique}).reset_index().sort_values('asin', ascending=True)
 
 fig, ax = plt.subplots(1, 1, figsize = (8,4))
-ax = sns.distplot(product_avgrating_sum['meanStarRating'], color = my_palette[2]) 
+ax = sns.distplot(products_clean['meanStarRating'], color = my_palette[2]) 
 plt.title('Average Product Rating for Each Product',fontweight='bold')  
 plt.xlabel('Average Rating',fontweight='bold')
 plt.ylabel('',fontweight='bold')
@@ -255,10 +255,47 @@ print('Script: 07.06.01 [Products by average rating] completed')
 
 
 # =============================================================================
+# 07.07.01 | Side by Side Distribution Plots | Executive Summary
+# =============================================================================
+# Convert to Data Frame
+from functions import conv_pivot2df
+conv_pivot2df(base_pivot)
+
+# rename column
+base_pivot.rename(columns={'mean':'meanStarRating'}, inplace=True)
+# wanted to pull out reviewerID into a column for flexibility
+base_pivot.reset_index(level=0, inplace=True)
+
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (15,4))
+
+# top level category by product
+ax1 = axes[0]
+# define the plot
+sns_h = sns.distplot(base_pivot['meanStarRating'], color = my_palette[0], ax=ax1) 
+# still need to add fontweight of 'bold' here
+ax1.set_title('Average Product Rating for Each Reviewer',fontweight='bold')  
+ax1.set_xlabel('Average Rating',fontweight='bold')
+ax1.set_ylabel('',fontweight='bold')
+
+
+# top level category by review
+ax2 = axes[1]
+# define the plot
+sns_h2 = sns.distplot(products_clean['meanStarRating'], color = my_palette[2], ax=ax2) 
+ax2.set_title('Average Product Rating for Each Product',fontweight='bold')  
+ax2.set_xlabel('Average Rating',fontweight='bold')
+ax2.set_ylabel('',fontweight='bold')
+plt.tight_layout()
+plt.show()
+
+print('Script: 07.07.01 [Histograms of ratings for executive summary] completed')
+
+
+# =============================================================================
 # Project Goals Visuals
 # =============================================================================
 # =============================================================================
-# 07.07.01 | Violin Plot of Avg Ratings
+# 07.08.01 | Violin Plot of Avg Ratings
 # =============================================================================
 avg_rating_by_reviewer = base_pivot.groupby('mean').count().reset_index()
 # verified sum(avg_rating_by_reviewer['len']) == 192403
@@ -271,4 +308,16 @@ plt.title('Average Product Rating Distribution by Reviewer',fontweight='bold')
 plt.xlabel('Rating')
 plt.xticks(np.arange(1, 6, 1)) # must be max+1
 
-print('Script: 07.07.01 [Violin plot of average ratings] completed')
+print('Script: 07.08.01 [Violin plot of average ratings for project goals] completed')
+
+
+fig, ax = plt.subplots(1, 1, figsize = (8,4))
+
+# define the plot
+sns_h = sns.distplot(base_pivot['meanStarRating'], color = my_palette[0]) 
+# still need to add fontweight of 'bold' here
+plt.title('Average Product Rating for Each Reviewer',fontweight='bold')  
+plt.xlabel('Average Rating',fontweight='bold')
+plt.ylabel('',fontweight='bold')
+plt.tight_layout()
+plt.show()
