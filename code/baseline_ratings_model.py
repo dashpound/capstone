@@ -50,9 +50,9 @@ print('Script: 06.00.02 [Import packages] completed')
 # =============================================================================
 # setting seed this way, per surprise documentation
 # https://surprise.readthedocs.io/en/stable/FAQ.html
-my_seed = RANDOM_SEED
-random.seed(my_seed)
-np.random.seed(my_seed)
+RANDOM_SEED
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
 
 
 # =============================================================================
@@ -104,26 +104,26 @@ print('Script: 06.02.01 [Train and test sets created] completed')
 # =============================================================================
 # 06.03.01 | Optimize SVD model
 # =============================================================================
-gc.collect()
-param_grid = {
-    "n_epochs": [5, 10, 20],
-    "lr_all": [0.01, 0.001, .005], #.005 is default
-    "reg_all": [0.1, 0.5, .02, .001] #.02 is default
-}
-
-# use 3-fold CV as that significantly speeds up fitting over 5-folds
-gs = GridSearchCV(SVD, param_grid, measures=["rmse", "mae"], cv=3)
-
-gs.fit(data)
-
-print('Script: 06.03.01 [Grid search for SVD model] completed')
-
-print(gs.best_score["rmse"])
-print(gs.best_params["rmse"])
-# {'n_epochs': 20, 'lr_all': 0.01, 'reg_all': 0.5}
+#gc.collect()
+#param_grid = {
+#    "n_epochs": [5, 10, 20],
+#    "lr_all": [0.01, 0.001, .005], #.005 is default
+#    "reg_all": [0.1, 0.5, .02, .001] #.02 is default
+#}
+#
+## use 3-fold CV as that significantly speeds up fitting over 5-folds
+#gs = GridSearchCV(SVD, param_grid, measures=["rmse", "mae"], cv=3)
+#
+#gs.fit(data)
+#
+#print('Script: 06.03.01 [Grid search for SVD model] completed')
+#
+#print(gs.best_score["rmse"])
+#print(gs.best_params["rmse"])
 
 # create a model with the best params according to rmse
-svd_algo = gs.best_estimator['rmse']
+# svd_algo = gs.best_estimator['rmse']
+svd_algo = SVD(n_epochs=20, lr_all=0.01, reg_all=0.5, random_state=RANDOM_SEED)
 svd_predictions = svd_algo.fit(trainset).test(testset)
 
 # evaluate model
@@ -135,7 +135,7 @@ fcp(svd_predictions)
 # this outputs a nice table if verbose=True
 svd_cv_output = cross_validate(svd_algo, data, measures=["rmse", "mae", "fcp"], cv=3, verbose=True)
 
-print('Script: 06.03.01 [Initial GOF statistics for SVD model] completed')
+print('Script: 06.03.01 [SVD model and initial GOF statistics] completed')
 
 # =============================================================================
 # 06.03.02 | Compute precision & recall at k for SVD model
@@ -192,7 +192,7 @@ for trainset, testset in kf.split(data):
 # then mean values were calculated just manually using an approach like below
 # np.std(np.array([(0.8863066425613811,0.8881494827385794,0.8839016221058171)]))
     
-print('Script: 06.03.02 [GOF statistics for SVD model] completed') 
+print('Script: 06.03.02 [Remaining GOF statistics for SVD model] completed') 
    
    
 # =============================================================================
@@ -201,32 +201,34 @@ print('Script: 06.03.02 [GOF statistics for SVD model] completed')
 # have to set up the param grid just a little bit differently for this model
 # choosing KNNWithMeans b/c it takes into account the mean ratings of each user
 # this takes some time to run b/c testing a lot of different combinations...
-gc.collect()
-sim_options = {
-    "name": ["msd", "cosine", "pearson"],
-    "min_support": [3, 4, 5],
-    'user_based': [False]  # we want similarities between items
-}
-
-bsl_options = {"n_epochs": [5, 10, 20]}
-
-param_grid = {"sim_options": sim_options,
-              "k": [20, 40, 60], #  The (max) number of neighbors to take into account for aggregation. Default is 40.
-              "bsl_options": bsl_options}
-
-gs = GridSearchCV(KNNWithMeans, param_grid, measures=["rmse", "mae"], cv=3)
-gs.fit(data)
-
-print('Script: 06.04.01 [Grid search for KNN model] completed')
-
-print(gs.best_score["rmse"])
-print(gs.best_params["rmse"])
+#gc.collect()
+#sim_options = {
+#    "name": ["msd", "cosine", "pearson"],
+#    "min_support": [3, 4, 5],
+#    'user_based': [False]  # we want similarities between items
+#}
+#
+#bsl_options = {"n_epochs": [5, 10, 20]}
+#
+#param_grid = {"sim_options": sim_options,
+#              "k": [20, 40, 60], #  The (max) number of neighbors to take into account for aggregation. Default is 40.
+#              "bsl_options": bsl_options}
+#
+#gs = GridSearchCV(KNNWithMeans, param_grid, measures=["rmse", "mae"], cv=3)
+#gs.fit(data)
+#
+#print('Script: 06.04.01 [Grid search for KNN model] completed')
+#
+#print(gs.best_score["rmse"])
+#print(gs.best_params["rmse"])
 #{'sim_options': {'name': 'pearson', 'min_support': 5, 'user_based': False},
 # 'k': 20,
 # 'bsl_options': {'n_epochs': 5}}
 
 # build model with best parameters
-knn_algo = gs.best_estimator['rmse']
+# knn_algo = gs.best_estimator['rmse']
+knn_algo = KNNWithMeans('sim_options': {'name': 'pearson', 'min_support': 5, 'user_based': False},
+                        k=20, 'bsl_options': {'n_epochs': 5})
 knn_predictions = knn_algo.fit(trainset).test(testset)
 
 # evaluate model
@@ -238,7 +240,7 @@ fcp(knn_predictions)
 knn_cv_output = cross_validate(knn_algo, data, measures=["rmse", "mae", "fcp"], cv=3, verbose=True)
 # https://bmanohar16.github.io/blog/recsys-evaluation-in-surprise - some nice code for plotting results
 
-print('Script: 06.04.01 [Initial GOF statistics for KNN model] completed')
+print('Script: 06.04.01 [KNN model and initial GOF statistics] completed')
 
 
 # =============================================================================
@@ -259,4 +261,4 @@ for trainset, testset in kf.split(data):
 # then mean values were calculated just manually using an approach like below
 # np.std(np.array([(0.8863066425613811,0.8881494827385794,0.8839016221058171)]))
     
-print('Script: 06.04.02 [GOF statistics for KNN model] completed')
+print('Script: 06.04.02 [Remaining GOF statistics for KNN model] completed')
