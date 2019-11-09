@@ -42,7 +42,7 @@ os.chdir(owd)
 
 # other file paths
 data_path = '/data'
-modeling_path = '../output/models'
+modeling_path = '../output'
 
 # define data paths
 reviews_path = '/reviews_meta_combined_individual.pkl'
