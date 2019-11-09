@@ -3,7 +3,7 @@
 # ===============================================================================
 # Name:               06_baseline_ratings_model
 # Author:             Rodd
-# Last Edited Date:   11/3/19
+# Last Edited Date:   11/9/19
 # Description:        Build SVD & KNN models from the surprise package using only ratings data.
 #                     
 # Notes:              Used the raw ratings data, but KNNMeans algorithm was able to account for average ratings of users.
@@ -18,8 +18,10 @@
 #                     Split data into train/test sets using 80/20 split.
 #                     Run a grid search to determine the best params for an SVD model.
 #                     Calculate GOF statistics for SVD model.
+#                     Save SVD model in output folder.
 #                     Run a grid search to determine the best params for the KNN model.
 #                     Calculate GOF statistics for KNN model.
+#                     Save KNN model in output folder.
 #
 #
 # =============================================================================
@@ -27,20 +29,20 @@
 # =============================================================================
 # Import packages
 import pandas as pd
-import gc
 import random
 import numpy as np
+from pathlib import Path
 
 # Surprise functions
 # pip install scikit-surprise
 from surprise import Reader, Dataset, SVD, KNNWithMeans
 from surprise.model_selection import cross_validate, train_test_split, GridSearchCV
 from surprise.accuracy import rmse, mae, fcp
+from surprise import dump
 
 # Import modules (other scripts)
-from clean_data_load import products_clean
 from data_load import reviews_df
-from environment_configuration import RANDOM_SEED
+from environment_configuration import RANDOM_SEED, working_directory, modeling_path
 
 print('Script: 06.00.02 [Import packages] completed')
 
@@ -54,15 +56,18 @@ RANDOM_SEED
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
+print('Script: 06.00.03 [Set seed] completed')
+
 
 # =============================================================================
 # 06.01.01 | Prepare data for modeling
 # =============================================================================
 # https://github.com/khanhnamle1994/movielens/blob/master/Content_Based_and_Collaborative_Filtering_Models.ipynb
-reviews_df2 = pd.merge(products_clean[['title','asin','category2_t']], reviews_df, on='asin',how='inner')
 
 # filter the data to only include camera & photo
-reviews_df2 = reviews_df2[reviews_df2['category2_t']=="Camera & Photo"]
+# NOTE: this changed b/c Hemant overwrote the original reviews data with his cleaned reviews data
+# this data frame has the products fields
+reviews_df2 = reviews_df[reviews_df['category2_t']=="Camera & Photo"]
 
 # select the columns we want
 reviews_sub = reviews_df2[['reviewerID', 'asin', 'overall']]
@@ -178,7 +183,7 @@ def precision_recall_at_k(predictions, k=10, threshold=3.5):
     return precisions, recalls
 
 # define our inputs
-kf = KFold(n_splits=3)
+kf = KFold(n_splits=3,random_state=RANDOM_SEED)
 algo = svd_algo
 
 for trainset, testset in kf.split(data):
@@ -189,14 +194,20 @@ for trainset, testset in kf.split(data):
     print(sum(prec for prec in precisions.values()) / len(precisions))
     print(sum(rec for rec in recalls.values()) / len(recalls))
 
-# then mean values were calculated just manually using an approach like below
+# then mean and std values were calculated just manually using an approach like below
 # np.std(np.array([(0.8863066425613811,0.8881494827385794,0.8839016221058171)]))
     
 print('Script: 06.03.02 [Remaining GOF statistics for SVD model] completed') 
    
-   
+
 # =============================================================================
-# 06.04.01 | Optimize KNNWithMeans model - Item Filtering
+# 06.04.01 | Save SVD Model
+# =============================================================================
+dump.dump(Path(working_directory + '/output' + '/baseline_model/svd_model'), algo=svd_algo)
+
+
+# =============================================================================
+# 06.05.01 | Optimize KNNWithMeans model - Item Filtering
 # =============================================================================
 # have to set up the param grid just a little bit differently for this model
 # choosing KNNWithMeans b/c it takes into account the mean ratings of each user
@@ -221,14 +232,13 @@ print('Script: 06.03.02 [Remaining GOF statistics for SVD model] completed')
 #
 #print(gs.best_score["rmse"])
 #print(gs.best_params["rmse"])
-#{'sim_options': {'name': 'pearson', 'min_support': 5, 'user_based': False},
-# 'k': 20,
-# 'bsl_options': {'n_epochs': 5}}
 
 # build model with best parameters
 # knn_algo = gs.best_estimator['rmse']
-knn_algo = KNNWithMeans('sim_options': {'name': 'pearson', 'min_support': 5, 'user_based': False},
-                        k=20, 'bsl_options': {'n_epochs': 5})
+sim_options = {'name': 'pearson', 'min_support': 5, 'user_based': False}
+bsl_options = {"n_epochs": 5}
+
+knn_algo = KNNWithMeans(sim_options=sim_options,k=20,bsl_options=bsl_options,random_state=RANDOM_SEED)
 knn_predictions = knn_algo.fit(trainset).test(testset)
 
 # evaluate model
@@ -240,14 +250,14 @@ fcp(knn_predictions)
 knn_cv_output = cross_validate(knn_algo, data, measures=["rmse", "mae", "fcp"], cv=3, verbose=True)
 # https://bmanohar16.github.io/blog/recsys-evaluation-in-surprise - some nice code for plotting results
 
-print('Script: 06.04.01 [KNN model and initial GOF statistics] completed')
+print('Script: 06.05.01 [KNN model and initial GOF statistics] completed')
 
 
 # =============================================================================
-# 06.04.02 | Precision and recall at k - KNN
+# 06.05.02 | Precision and recall at k - KNN
 # =============================================================================
 # define our inputs
-kf = KFold(n_splits=3)
+kf = KFold(n_splits=3,random_state=RANDOM_SEED)
 algo = knn_algo
 
 for trainset, testset in kf.split(data):
@@ -258,7 +268,13 @@ for trainset, testset in kf.split(data):
     print(sum(prec for prec in precisions.values()) / len(precisions))
     print(sum(rec for rec in recalls.values()) / len(recalls))
 
-# then mean values were calculated just manually using an approach like below
+# then mean and std values were calculated just manually using an approach like below
 # np.std(np.array([(0.8863066425613811,0.8881494827385794,0.8839016221058171)]))
     
-print('Script: 06.04.02 [Remaining GOF statistics for KNN model] completed')
+print('Script: 06.05.02 [Remaining GOF statistics for KNN model] completed')
+
+
+# =============================================================================
+# 06.06.01 | save KNN Model
+# =============================================================================
+dump.dump(Path(working_directory + '/output' + '/baseline_model/knn_model'), algo=knn_algo)
