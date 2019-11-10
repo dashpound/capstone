@@ -45,26 +45,35 @@ from code.configuration.functions import cluster_and_plot
 print('Script: 04.00.02 [Import Packages] completed')
 
 # =============================================================================
-# 04.01.01 | Settings for sampling to facilitate development
+# 04.00.03 | Settings for sampling to facilitate development
 # =============================================================================
-# Generate jsonlines file, configure to n to skip
-# Note: This really only needs to be run once & then stored as part of teh repository
-# Default to 'n"
-create_jlines = 'n'
+create_jlines = 'y' # Default to 'n"
+sampleit = 'n' #Sample jsonlines; quicker development; figure to 'n' in production
+num_2_samp = 100 # Number of items to sample for jsonlines file
+filterit = 'y' # Filter to category if this is set to is 'y'
+graphit = 'n' # do not produce clusters (memory intensive)
+r_or_p = 'r' # Reviewer or product
+k = 10 #Set number of clusters; must be <= the number in the functions.py file
 
-# Sample it makes it so that the data frame is sampled for quicker development
-# Configure to 'n' in production
-sampleit = 'n'
-# Filter to category if this is set to is 'y'
-filterit = 'y'
+config_key = (create_jlines+sampleit+str(num_2_samp)+filterit+graphit+str(k))
 
-num_2_samp = 10000
+#TODO Create a vector of the configuraitons; use that vector for the names of files
 
-#Set number of clusters
-k = 10
+print('Script: 04.00.03 [Runtime configurations] completed')
 
+# =============================================================================
+# 04.00.04 | NLP Runtime Configurations
+# =============================================================================
+
+# Parameters for the NLP
 MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
 VECTOR_LENGTH = 128  # set vector length for TF-IDF and Doc2Vec
+
+print('Script: 04.00.05 [NLP Runtime configurations] completed')
+
+# =============================================================================
+# 04.00.06 | Execute switches
+# =============================================================================
 
 if filterit == 'y':
     reviews_df = reviews_df[reviews_df['category2_t']=='Camera & Photo']
@@ -79,22 +88,36 @@ if sampleit == 'y':
 else:
     print('Unsampled size:', len(reviews_df))
 
-print('Script: 04.00.03 [Sampling mode settings set] completed')
+print('Script: 04.00.06 [Filter & Sample] completed')
 
 # =============================================================================
 # 04.01.01 | Create a list of products
 # =============================================================================
-if create_jlines == 'n':
-    out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
-    print('Script: 04.01.01 [Create jsonlines file] skipped')
+
+if filterit == 'y':  # If filtered...
+    if create_jlines == 'n': # And we don't need to make a jsonlines dile
+        out_file_name = "./data/jsonlines/camera/reviewer/camera_reviews.jsonl"
+        print('Script: 04.01.01 [Create jsonlines file] skipped')
+    else:  # but if we do have to make a jsonlines file
+        headers = ['reviewerID', 'reviewText']
+        if sampleit == 'y': # and we want to sample it for speed
+            out_file_name = "./data/jsonlines/camera/reviewer/camera_reviews_sample.jsonl"
+        else: # or if we don't want to sample it
+            out_file_name = "./data/jsonlines/camera/reviewer/camera_reviews.jsonl"
+        nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
+        print('Script: 04.01.01 [Create jsonlines file] completed')
 else:
-    headers = ['reviewerID', 'reviewText']
-    if sampleit == 'y':
-        out_file_name = "../data/jsonlines/collection_camera_reviews2.jsonl"
-    else:
-        out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
-    nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
-    print('Script: 04.01.01 [Create jsonlines file] completed')
+    if create_jlines == 'n': # And we don't need to make a jsonlines dile
+        out_file_name = "./data/jsonlines/electronics/reviewer/electronics_reviews.jsonl"
+        print('Script: 04.01.01 [Create jsonlines file] skipped')
+    else:  # but if we do have to make a jsonlines file
+        headers = ['reviewerID', 'reviewText']
+        if sampleit == 'y': # and we want to sample it for speed
+            out_file_name = "./data/jsonlines/electronics/reviewer/electronics_reviews_sample.jsonl"
+        else: # or if we don't want to sample it
+            out_file_name = "./data/jsonlines/electronics/reviewer/electronics_reviews.jsonl"
+        nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
+        print('Script: 04.01.01 [Create jsonlines file] completed')
 
 # =============================================================================
 # 04.02.01 | Readin jsonlines file
@@ -196,7 +219,7 @@ print('Script: 04.03.04 [Itemize labels] completed')
 
 # =============================================================================
 # 04.04.01 | Sklearn TFIDF
-# =============================================================================
+# ====================s=========================================================
 # note the ngram_range will allow you to include multiple words within the TFIDF matrix
 # Call Tfidf Vectorizer
 Tfidf = TfidfVectorizer(ngram_range=(1, MAX_NGRAM_LENGTH), max_features=VECTOR_LENGTH)
@@ -208,7 +231,22 @@ TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
 # creating dataframe from TFIDF Matrix
 matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=labels)
 
-matrix.to_csv("../data/tfidf/tfidf_matrix.csv")
+#matrix.to_csv("./data/tfidf/tfidf_matrix.csv")
+
+if sampleit == 'y':
+    if filterit == 'y':
+        matrix.to_csv("./data/tfidf/camera/reviewer/camera_reviewer_tfidf_matrix.csv")
+    else:
+        matrix.to_csv("./data/tfidf/electronics/reviewer/electronics_reviewer_tfidf_sample.csv")
+    print('Script: 04.04.01 [Write TFIDF matrix] completed')
+else:
+    if filterit == 'y':
+        matrix.to_csv("./data/tfidf/camera/reviewer/camera_reviewer_tfidf.csv")
+    else:
+        matrix.to_csv("./data/tfidf/electronics/reviewer/electronics_reviewer_tfidf.csv")
+    print('Script: 04.04.01 [Write TFIDF matrix] completed')
+
+
 print('Script: 04.04.01 [Sklearn TFIDF, write tfidf] completed')
 
 # =============================================================================
@@ -238,9 +276,18 @@ pivot = pd.pivot_table(frame, values='record', index='labels',
 
 print(pivot)
 
-pivot.to_csv("../output/clusters/clusters_tfidf.csv")
-
-print('Script: 04.05.02 [K Means Pivot] completed')
+if sampleit == 'y':
+    if filterit == 'y':
+        pivot.to_csv("./output/clusters/reviewer/camera/camera_reviewer_cluster_sample.csv")
+    else:
+        pivot.to_csv("./output/clusters/reviewer/electronics/electronics_reviewer_cluster_sample.csv")
+    print('Script: 04.05.02 [K Means Pivot] completed')
+else:
+    if filterit == 'y':
+        pivot.to_csv("./output/clusters/reviewer/camera/camera_reviewer_cluster.csv")
+    else:
+        pivot.to_csv("./output/clusters/reviewer/electronics/electronics_reviewer_cluster.csv")
+    print('Script: 04.05.02 [K Means Pivot] completed')
 
 # =============================================================================
 # 04.05.03 | Top Terms per cluster
@@ -278,8 +325,6 @@ for i in range(k):
 
 print('Script: 04.05.03 [Top terms per cluster] completed')
 
-
-
 # =============================================================================
 # 04.06.01 | TF-IDF Plotting - mds algorithm
 # =============================================================================
@@ -287,15 +332,20 @@ print('Script: 04.05.03 [Top terms per cluster] completed')
 # "precomputed" because we provide a distance matrix
 # we will also specify `random_state` so the plot is reproducible.
 
-mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED, n_jobs=-1)
-cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'precomputed')
-print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
-
+if graphit != 'n':
+    mds = MDS(n_components=2, dissimilarity="precomputed", random_state=RANDOM_SEED, n_jobs=-1)
+    cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'precomputed', config_key)
+    print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
+else:
+    print('Script: 04.06.01 [TF-IDF Plot Plotted] Skipped')
 # =============================================================================
 # 04.06.02 | TF-IDF Plotting - mds algorithm
 # =============================================================================
-mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
-cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'euclidean')
-print('Script: 04.06.02 [TF-IDF Plot Plotted] completed')
+if graphit != 'n':
+    mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
+    cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'euclidean', config_key)
+    print('Script: 04.06.02 [TF-IDF Plot Plotted] completed')
+else:
+    print('Script: 04.06.02 [TF-IDF Plot Plotted] Skipped')
 
-exec(open("./code/nlp_pre_proc2.py").read());
+print('Script: 04 Completed')

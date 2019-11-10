@@ -29,7 +29,7 @@ print('Script: 01.01.02 [Import Packages] completed')
 owd = os.getcwd()
 
 # Get out of the code folder
-os.chdir("..")
+#os.chdir("..")
 
 # Set that as the working directory variable
 working_directory = os.getcwd()
@@ -45,12 +45,11 @@ data_path = '/data'
 modeling_path = '../output'
 
 # define data paths
-reviews_path = '/reviews_meta_combined_individual.pkl'
-metadata_path = '/metadata.pkl'
-qa_path = '/QA_data.pkl'
-products_clean_path = '/product_metadata_no_one_hot_encoding.pkl'
-products_onehot_path = '/product_metadata_one_hot_encoding.pkl'
-
+reviews_path = '/pickles/enhanced/reviews_meta_combined_individual.pkl'
+metadata_path = '/pickles/og_pickles/metadata.pkl'
+qa_path = '/pickles/og_pickles/QA_data.pkl'
+products_clean_path = '/pickles/enhanced/product_metadata_no_one_hot_encoding.pkl'
+products_onehot_path = '/pickles/enhanced/product_metadata_one_hot_encoding.pkl'
 
 print('Script: 01.01.03 [Update Data Paths] completed')
 

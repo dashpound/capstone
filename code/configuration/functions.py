@@ -116,7 +116,7 @@ print('Script: 00.03.03 [Generate Jsonlines] Defined')
 # 00.03.04 | Cluster and Plot NLP
 # =============================================================================
 
-def cluster_and_plot(mds_alg, TFIDF_matrix, clusters, cluster_title,output):
+def cluster_and_plot(mds_alg, TFIDF_matrix, clusters, cluster_title,output, runid):
     mds_alg
     dist = 1 - cosine_similarity(TFIDF_matrix)
     pos = mds_alg.fit_transform(dist)  # shape (n_components, n_samples)
@@ -166,6 +166,28 @@ def cluster_and_plot(mds_alg, TFIDF_matrix, clusters, cluster_title,output):
     # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))      #show legend with only 1 point
     # The following section of code is to run the k-means algorithm on the doc2vec outputs.
     # note the differences in document clusters compared to the TFIDF matrix.
-    plt.savefig('../output/clusters/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + '.png')
+    if r_or_p == 'r':
+        if filterit =='y':
+            if sampleit == 'y':
+                plt.savefig('../output/clusters/reviewer/camera/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + 'sample' +'.png')
+            else:
+                plt.savefig('../output/clusters/reviewer/camera/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + '.png')
+        else:
+            if sampleit == 'y':
+                plt.savefig('../output/clusters/reviewer/electronics/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + 'sample' +'.png')
+            else:
+                plt.savefig('../output/clusters/reviewer/electronics/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + '.png')
+    else:
+        if filterit =='y':
+            if sampleit == 'y':
+                plt.savefig('../output/clusters/product/camera/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + 'sample' +'.png')
+            else:
+                plt.savefig('../output/clusters/product/camera/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + '.png')
+        else:
+            if sampleit == 'y':
+                plt.savefig('../output/clusters/product/electronics/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + 'sample' +'.png')
+            else:
+                plt.savefig('../output/clusters/product/electronics/' + output + datetime.now().strftime("%d-%m-%Y_%I-%M-%S_%p") + runid + '.png')
+    #TODO convert this to variable pathing based on runid vector
     plt.show()
 
