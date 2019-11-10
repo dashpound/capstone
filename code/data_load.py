@@ -41,7 +41,7 @@ print('Script: 02.00.02 [Import Packages] completed')
 # =============================================================================
 # Unpack review data where reviewer has left at least 5 reviews
 
-with open(Path(working_directory+data_path+reviews_path), 'rb') as pickle_file:
+with open(Path(working_directory+'/data'+reviews_path), 'rb') as pickle_file:
     reviews_df = pickle.load(pickle_file)
     reviews_df = pd.DataFrame(reviews_df)
 
