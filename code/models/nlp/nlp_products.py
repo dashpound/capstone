@@ -50,7 +50,7 @@ print('Script: 05.00.02 [Import Packages] completed')
 create_jlines = 'y' # Default to 'n"
 sampleit = 'n' #Sample jsonlines; quicker development; figure to 'n' in production
 num_2_samp = 100 # Number of items to sample for jsonlines file
-filterit = 'y' # Filter to category if this is set to is 'y'
+filterit = 'n' # Filter to category if this is set to is 'y'
 graphit = 'n' # do not produce clusters (memory intensive)
 r_or_p = 'p' # Reviewer or product
 k = 10 #Set number of clusters; must be <= the number in the functions.py file
