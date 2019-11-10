@@ -231,8 +231,6 @@ TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
 # creating dataframe from TFIDF Matrix
 matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=labels)
 
-#matrix.to_csv("./data/tfidf/tfidf_matrix.csv")
-
 if sampleit == 'y':
     if filterit == 'y':
         matrix.to_csv("./data/tfidf/camera/reviewer/camera_reviewer_tfidf_matrix.csv")
