@@ -47,7 +47,7 @@ print('Script: 05.00.02 [Import Packages] completed')
 # =============================================================================
 # 05.00.03 | Settings for sampling to facilitate development
 # =============================================================================
-create_jlines = 'y' # Default to 'n"
+create_jlines = 'n' # Default to 'n"
 sampleit = 'n' #Sample jsonlines; quicker development; figure to 'n' in production
 num_2_samp = 100 # Number of items to sample for jsonlines file
 filterit = 'n' # Filter to category if this is set to is 'y'
