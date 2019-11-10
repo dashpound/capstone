@@ -233,7 +233,7 @@ matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(),
 
 if sampleit == 'y':
     if filterit == 'y':
-        matrix.to_csv("./data/tfidf/camera/reviewer/camera_reviewer_tfidf_matrix.csv")
+        matrix.to_csv("./data/tfidf/camera/reviewer/camera_reviewer_tfidf_sample.csv")
     else:
         matrix.to_csv("./data/tfidf/electronics/reviewer/electronics_reviewer_tfidf_sample.csv")
     print('Script: 04.04.01 [Write TFIDF matrix] completed')
