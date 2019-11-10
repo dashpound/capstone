@@ -41,8 +41,8 @@ from surprise.accuracy import rmse, mae, fcp
 from surprise import dump
 
 # Import modules (other scripts)
-from data_load import reviews_df
-from environment_configuration import RANDOM_SEED, working_directory, modeling_path
+from code.dataprep.data_load import reviews_df
+from code.configuration.environment_configuration import RANDOM_SEED, working_directory, modeling_path
 
 print('Script: 06.00.02 [Import packages] completed')
 

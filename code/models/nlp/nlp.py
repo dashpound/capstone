@@ -1,9 +1,9 @@
 # ===============================================================================
-# 05.00.01 | nlp_pre_proc | Documentation
+# 05.00.01 | nlp | Documentation
 # ===============================================================================
-# Name:               nlp_pre_proc
+# Name:               nlp
 # Author:             Kiley
-# Last Edited Date:   10/14/19
+# Last Edited Date:   11/02/19
 # Description:        Call data frames from EDA code;
 #                     Tokenize dataframes
 # Notes:
@@ -12,7 +12,7 @@
 # Outline:
 #
 # =============================================================================
-# 04.00.02 | Import Modules & Packages
+# 05.00.02 | Import Modules & Packages
 # =============================================================================
 # Import packages
 import re, string
@@ -35,12 +35,12 @@ import json_lines
 import pandas as pd
 
 # Import modules (other scripts)
-from data_load import reviews_df
-from environment_configuration import set_palette
-from functions import clean_docs
-from functions import gen_jlines
-from environment_configuration import RANDOM_SEED
-from functions import cluster_and_plot
+from code.dataprep.data_load import reviews_df
+from code.configuration.environment_configuration import set_palette
+from code.configuration.functions import clean_docs
+from code.configuration.functions import gen_jlines
+from code.configuration.environment_configuration import RANDOM_SEED
+from code.configuration.functions import cluster_and_plot
 
 print('Script: 04.00.02 [Import Packages] completed')
 
@@ -55,22 +55,17 @@ create_jlines = 'n'
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
 sampleit = 'n'
-# Filter to category if this is set to is 'y'
-filterit = 'y'
+# Number of records to sample if sampleit is 'y'
 
-num_2_samp = 10
+num_2_samp = 10000
 
 #Set number of clusters
 k = 10
 
-MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
-VECTOR_LENGTH = 128  # set vector length for TF-IDF and Doc2Vec
+MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
+VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
 
-if filterit == 'y':
-    reviews_df = reviews_df[reviews_df['category2_t']=='Camera & Photo']
-    print('Filtered to Camera & Photos')
-else:
-    pass
+trainit = 'n'
 
 # Sampling function
 if sampleit == 'y':
@@ -85,14 +80,14 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
-    out_file_name = "../data/jsonlines/items_cameras_reviews.jsonl"
+    out_file_name = "../data/jsonlines/collection_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
-    headers = ['asin', 'reviewText']
+    headers = ['reviewerID', 'reviewText']
     if sampleit == 'y':
-        out_file_name = "../data/jsonlines/items_cameras_reviews2.jsonl"
+        out_file_name = "../data/jsonlines/collection_reviews2.jsonl"
     else:
-        out_file_name = "../data/jsonlines/items_cameras_reviews.jsonl"
+        out_file_name = "../data/jsonlines/collection_reviews.jsonl"
     nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
     print('Script: 04.01.01 [Create jsonlines file] completed')
 
@@ -109,7 +104,7 @@ text={'text':[]}
 # Readin jsonlines file
 with open(out_file_name, 'rb') as f:
     for item in json_lines.reader(f):
-        labels['labels'].append(item['asin'])
+        labels['labels'].append(item['reviewerID'])
         text['text'].append(item['reviewText'])
 
 # The read in creates two dataframes one for labels, one for position; this just joins them together by position
@@ -208,7 +203,7 @@ TFIDF_matrix = Tfidf.fit_transform(final_processed_text)
 # creating dataframe from TFIDF Matrix
 matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=Tfidf.get_feature_names(), index=labels)
 
-matrix.to_csv("../data/tfidf/tfidf_matrix2.csv")
+matrix.to_csv("../data/tfidf/tfidf_matrix.csv")
 print('Script: 04.04.01 [Sklearn TFIDF, write tfidf] completed')
 
 # =============================================================================
@@ -220,8 +215,8 @@ km.fit(TFIDF_matrix)
 clusters = km.labels_.tolist()
 
 terms = Tfidf.get_feature_names()
-Dictionary = {'Product': labels, 'Cluster': clusters, 'Text': final_processed_text}
-frame = pd.DataFrame(Dictionary, columns=['Cluster', 'Product', 'Text'])
+Dictionary = {'Reviewer': labels, 'Cluster': clusters, 'Text': final_processed_text}
+frame = pd.DataFrame(Dictionary, columns=['Cluster', 'Reviewer', 'Text'])
 
 frame = pd.concat([frame, data['labels']], axis=1)
 
@@ -238,7 +233,7 @@ pivot = pd.pivot_table(frame, values='record', index='labels',
 
 print(pivot)
 
-pivot.to_csv("../output/clusters/clusters_tfidf2.csv")
+pivot.to_csv("../output/clusters/clusters_tfidf.csv")
 
 print('Script: 04.05.02 [K Means Pivot] completed')
 

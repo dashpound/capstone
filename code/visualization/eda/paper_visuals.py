@@ -36,9 +36,9 @@ import pandas as pd
 import gc
 
 # Import modules (other scripts)
-from data_load import reviews_df, metadata_df
-from clean_data_load import products_clean
-from environment_configuration import show_values_on_bars, plot_params
+from code.dataprep.data_load import reviews_df, metadata_df
+from code.dataprep.clean_data_load import products_clean
+from code.configuration.environment_configuration import show_values_on_bars, plot_params
 from eda import base_pivot
 
 # need to call plot_params
@@ -258,7 +258,7 @@ print('Script: 07.06.01 [Products by average rating] completed')
 # 07.07.01 | Side by Side Distribution Plots | Executive Summary
 # =============================================================================
 # Convert to Data Frame
-from functions import conv_pivot2df
+from code.configuration.functions import conv_pivot2df
 conv_pivot2df(base_pivot)
 
 # rename column

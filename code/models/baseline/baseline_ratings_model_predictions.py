@@ -41,8 +41,8 @@ from surprise import Reader, Dataset
 from surprise import dump
 
 # Import modules (other scripts)
-from data_load import reviews_df
-from environment_configuration import RANDOM_SEED, working_directory
+from code.dataprep.data_load import reviews_df
+from code.configuration.environment_configuration import RANDOM_SEED, working_directory
 
 print('Script: 07.00.02 [Import packages] completed')
 

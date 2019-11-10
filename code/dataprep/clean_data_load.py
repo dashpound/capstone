@@ -21,9 +21,9 @@
 # 05.00.02 | Import Modules & Packages
 # =============================================================================
 # Import modules (other scripts)
-from environment_configuration import working_directory
-from environment_configuration import data_path
-from environment_configuration import products_clean_path, products_onehot_path
+from code.configuration.environment_configuration import working_directory
+from code.configuration.environment_configuration import data_path
+from code.configuration.environment_configuration import products_clean_path, products_onehot_path
 
 # Import packages
 import pickle

@@ -1,9 +1,9 @@
 # ===============================================================================
-# 05.00.01 | nlp | Documentation
+# 04.00.01 | nlp_pre_proc | Documentation
 # ===============================================================================
-# Name:               nlp
+# Name:               nlp_pre_proc
 # Author:             Kiley
-# Last Edited Date:   11/02/19
+# Last Edited Date:   10/14/19
 # Description:        Call data frames from EDA code;
 #                     Tokenize dataframes
 # Notes:
@@ -12,7 +12,7 @@
 # Outline:
 #
 # =============================================================================
-# 05.00.02 | Import Modules & Packages
+# 04.00.02 | Import Modules & Packages
 # =============================================================================
 # Import packages
 import re, string
@@ -35,12 +35,12 @@ import json_lines
 import pandas as pd
 
 # Import modules (other scripts)
-from data_load import reviews_df
-from environment_configuration import set_palette
-from functions import clean_docs
-from functions import gen_jlines
-from environment_configuration import RANDOM_SEED
-from functions import cluster_and_plot
+from code.dataprep.data_load import reviews_df
+from code.configuration.environment_configuration import set_palette
+from code.configuration.functions import clean_docs
+from code.configuration.functions import gen_jlines
+from code.configuration.environment_configuration import RANDOM_SEED
+from code.configuration.functions import cluster_and_plot
 
 print('Script: 04.00.02 [Import Packages] completed')
 
@@ -55,17 +55,22 @@ create_jlines = 'n'
 # Sample it makes it so that the data frame is sampled for quicker development
 # Configure to 'n' in production
 sampleit = 'n'
-# Number of records to sample if sampleit is 'y'
+# Filter to category if this is set to is 'y'
+filterit = 'y'
 
 num_2_samp = 10000
 
 #Set number of clusters
 k = 10
 
-MAX_NGRAM_LENGTH = 1  # try 1 and 2 and see which yields better modeling results
-VECTOR_LENGTH = 512  # set vector length for TF-IDF and Doc2Vec
+MAX_NGRAM_LENGTH = 2  # try 1 and 2 and see which yields better modeling results
+VECTOR_LENGTH = 128  # set vector length for TF-IDF and Doc2Vec
 
-trainit = 'n'
+if filterit == 'y':
+    reviews_df = reviews_df[reviews_df['category2_t']=='Camera & Photo']
+    print('Filtered to Camera & Photos')
+else:
+    pass
 
 # Sampling function
 if sampleit == 'y':
@@ -80,14 +85,14 @@ print('Script: 04.00.03 [Sampling mode settings set] completed')
 # 04.01.01 | Create a list of products
 # =============================================================================
 if create_jlines == 'n':
-    out_file_name = "../data/jsonlines/collection_reviews.jsonl"
+    out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
     print('Script: 04.01.01 [Create jsonlines file] skipped')
 else:
     headers = ['reviewerID', 'reviewText']
     if sampleit == 'y':
-        out_file_name = "../data/jsonlines/collection_reviews2.jsonl"
+        out_file_name = "../data/jsonlines/collection_camera_reviews2.jsonl"
     else:
-        out_file_name = "../data/jsonlines/collection_reviews.jsonl"
+        out_file_name = "../data/jsonlines/collection_camera_reviews.jsonl"
     nlp_df_reviewer = gen_jlines(headers, reviews_df, out_file_name)
     print('Script: 04.01.01 [Create jsonlines file] completed')
 
@@ -273,6 +278,8 @@ for i in range(k):
 
 print('Script: 04.05.03 [Top terms per cluster] completed')
 
+
+
 # =============================================================================
 # 04.06.01 | TF-IDF Plotting - mds algorithm
 # =============================================================================
@@ -290,3 +297,5 @@ print('Script: 04.06.01 [TF-IDF Plot Plotted] completed')
 mds = TSNE(n_components=2, metric="euclidean", random_state=RANDOM_SEED)
 cluster_and_plot(mds, TFIDF_matrix, clusters, cluster_title, 'euclidean')
 print('Script: 04.06.02 [TF-IDF Plot Plotted] completed')
+
+exec(open("./code/nlp_pre_proc2.py").read());

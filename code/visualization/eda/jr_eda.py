@@ -22,9 +22,9 @@ import pandas as pd
 import gc
 
 # Import modules (other scripts)
-from data_load import reviews_df, metadata_df
-from environment_configuration import set_palette
-from functions import conv_pivot2df
+from code.dataprep.data_load import reviews_df, metadata_df
+from code.configuration.environment_configuration import set_palette
+from code.configuration.functions import conv_pivot2df
 
 
 print('Script: 04.00.02 [Import Packages] completed')
