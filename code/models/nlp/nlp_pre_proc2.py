@@ -284,9 +284,9 @@ if sampleit == 'y':
     print('Script: 05.05.02 [K Means Pivot] completed')
 else:
     if filterit == 'y':
-        pivot.to_csv("./output/clusters/reviewer/camera/camera_reviewer_cluster.csv")
+        pivot.to_csv("./output/clusters/product/camera/camera_product_cluster.csv")
     else:
-        pivot.to_csv("./output/clusters/reviewer/electronics/electronics_reviewer_cluster.csv")
+        pivot.to_csv("./output/clusters/product/electronics/electronics_product_cluster.csv")
     print('Script: 05.05.02 [K Means Pivot] completed')
 
 
