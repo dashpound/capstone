@@ -9,6 +9,8 @@ Instructions: Install the following using your terminal...
 
 pip install dash==1.4.1  # The core dash backend
 pip install dash-daq==0.2.1  # DAQ components (newly open-sourced!)
+pip install dash-bootstrap-components  # Responsive layouts and components
+Visit the following location in your web browser to see app: http://127.0.0.1:8050/ 
 
 """
 # ===============================================================================
@@ -47,7 +49,7 @@ from pathlib import Path
 import gc
 
 # Import modules (other scripts)
-from environment_configuration import working_directory, data_path
+from environment_configuration import working_directory, data_path, dash_data_path
 from environment_configuration import reviews_ind_path, reviews_agg_path, products_path
 
 # Dash packages
@@ -56,6 +58,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 import plotly.express as px
+import dash_bootstrap_components as dbc
+import dash_table as dt
 from dash.dependencies import Input, Output
 
 
@@ -83,6 +87,14 @@ with open(Path(working_directory + data_path + products_path), 'rb')  as pickle_
     
 gc.collect()
 
+# Load sample mapped product data
+sample_mapped_product = pd.read_excel(Path(working_directory + dash_data_path + '/Sample_Mapped_Product_Data.xlsx'))
+
+
+#Load sample mapped reviewer data
+sample_mapped_reviewer = pd.read_excel(Path(working_directory + dash_data_path + '/Sample_Mapped_Reviewer_Data.xlsx'))
+
+
 
 # =============================================================================
 # 02.02.01| Filter Data to Camera & Photo
@@ -102,10 +114,6 @@ top_10_products = pd.merge(product_data[['title','asin']],top_10_products, on='a
 top_10_products['title'] = top_10_products['title'].str[:60]
 
 top_10_products = top_10_products.sort_values('count', ascending=True)
-
-# number of reviewers & products
-number_reviewers = review_data_ind['reviewerID'].nunique()
-number_products = review_data_ind['asin'].nunique()
 
 
 # =============================================================================
@@ -162,26 +170,82 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                            #'margin': go.layout.Margin(l=500,pad=4)
                           
         # Creating tabs to use to add in the recommendation components
-        html.Div(children=[
-        	dcc.Tabs(
-            	id="tabsID",
-            	children=[
-        		dcc.Tab(label='Product Recommendations'), 
-        					 #children=[product_wise_layout]),	
-        		dcc.Tab(label='User Recommendations')], 
-        					 #children=[user_wise_layout]),
-        		
-                ## Specifies the tab to be displayed by default
-            	value="Product Recommendations")])  
-    ])
+        html.Div([dcc.Tabs(id="tabs", children=[
+        # Product Recommendation Tab
+            dcc.Tab(label='Product Recommendations', children=[
+             # Product Dropdown Menu
+             html.Div([dcc.Dropdown(id='product-dropdown',
+                     options=[{'label': i, 'value': i} for i in sample_mapped_product['Mapped Product'].unique()],
+                     value='Mapped Product Code',
+                     style={'width': '50%',
+                            'display': 'inline-block'})]),
+              # Product Table
+              html.Div([dt.DataTable(id='product-datatable',
+                     data=sample_mapped_product.to_dict('records'),
+                     columns=[{'name': i, 'id': i} for i in sample_mapped_product.columns],
+                     style_table={'overflowX': 'scroll'},
+                     style_cell={'height': 'auto', 
+                                 'minWidth': '0px', 
+                                 'maxWidth': '180px', 
+                                 'whiteSpace': 'normal',
+                                 'font-family':'Arial',
+                                 'fontSize':11},
+                     style_cell_conditional=[{'if': {'column_id': c}, 
+                                              'textAlign': 'left'} 
+                                              for c in ['Product Name', 'Item URL']],  
+                     style_data_conditional=[{'if': {'row_index': 'odd'}, 
+                                              'backgroundColor': 'rgb(225, 225, 225)'}],
+                     style_header={'backgroundColor': 'rgb(145, 145, 145)', 
+                                   'fontWeight': 'bold'})])]),
+    
+          # User Recommendation Tab
+          dcc.Tab(label='User Recommendations', children=[
+                # User Dropdown Menu
+                html.Div([dcc.Dropdown(id='reviewer-dropdown',
+                     options=[{'label': i, 'value': i} for i in sample_mapped_reviewer['Mapped Reviewer'].unique()],
+                     value='Mapped Reviewer ID',
+                     style={'width': '50%',
+                            'display': 'inline-block'})]),
+                # User Table
+                html.Div([dt.DataTable(id='reviewer-datatable',
+                     data=sample_mapped_reviewer.to_dict('records'),
+                     columns=[{"name": i, "id": i} for i in sample_mapped_reviewer.columns],
+                     style_table={'overflowX': 'scroll'},
+                     style_cell={'height': 'auto', 
+                                 'minWidth': '0px', 
+                                 'maxWidth': '180px', 
+                                 'whiteSpace': 'normal',
+                                 'font-family':'Arial',
+                                 'fontSize':11},
+                     style_cell_conditional=[{'if': {'column_id': c}, 
+                                              'textAlign': 'left'} 
+                                              for c in ['Product Name', 'Item URL']],  
+                     style_data_conditional=[{'if': {'row_index': 'odd'}, 
+                                              'backgroundColor': 'rgb(225, 225, 225)'}],
+                     style_header={'backgroundColor': 'rgb(145, 145, 145)', 
+                                   'fontWeight': 'bold'})])])
 
+    ]),
+    html.Div(id='tabs-content')])
+    
+  ])
     
 # =============================================================================
 # 02.05.01| Dash Reactive Components
 # =============================================================================
-
-    
-    
+#@app.callback(Output('tabs-content', 'children'),
+#              [Input('tabs', 'value')])
+#
+#def render_content(tab):
+#    if tab == 'Product Recommendations':
+#        return html.Div([
+#            html.H3('Product Recommendations')
+#        ])
+#    elif tab == 'User Recommendations':
+#        return html.Div([
+#            html.H3('User Recommendations')
+#        ])
+#    
 # =============================================================================
 # 02.06.01| Run Dash
 # =============================================================================                               
