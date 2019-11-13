@@ -59,8 +59,18 @@ print('Script: 01.01.01 [Set working directory and other paths] completed')
 # 01.02.01 | Define Other Global Variables
 # =============================================================================
 
-# set seed for reproducability
-RANDOM_SEED = 42
+# defining length of tables
+PAGE_SIZE = 11
+
+# used for controlling filtering of tables
+operators = [['ge ', '>='],
+             ['le ', '<='],
+             ['lt ', '<'],
+             ['gt ', '>'],
+             ['ne ', '!='],
+             ['eq ', '='],
+             ['contains '],
+             ['datestartswith ']]
 
 print('Script: 01.02.01 [Define Other Global Variables] completed')
 
@@ -68,52 +78,29 @@ print('Script: 01.02.01 [Define Other Global Variables] completed')
 # =============================================================================
 # 01.03.01 | Define Functions
 # =============================================================================
-# custom color palette
-def set_palette():
-    my_palette = sns.color_palette() # 10 colors
-    sns.set_palette(my_palette)
-    sns.palplot(my_palette)
-    plt.show()
-    
-# combining levels of categorical variable into level of 'Other' based on threshold
-threshold = 100 
+# used to help with filtering
+# found this code here: https://dash.plot.ly/datatable/callbacks
+def split_filter_part(filter_part):
+    for operator_type in operators:
+        for operator in operator_type:
+            if operator in filter_part:
+                name_part, value_part = filter_part.split(operator, 1)
+                name = name_part[name_part.find('{') + 1: name_part.rfind('}')]
 
-def set_levels(df, col):
-    df = df.copy()
-    for i in col.unique():
-        if len(df.loc[col == i]) < threshold:
-            df.loc[col == i] = 'Other'
-    return df
+                value_part = value_part.strip()
+                v0 = value_part[0]
+                if (v0 == value_part[-1] and v0 in ("'", '"', '`')):
+                    value = value_part[1: -1].replace('\\' + v0, v0)
+                else:
+                    try:
+                        value = float(value_part)
+                    except ValueError:
+                        value = value_part
 
-# define styling for plots
-def plot_params():
-    sns.set(font_scale=1.25)
-    sns.set_style("darkgrid")
-    plt.gca().xaxis.grid(True)
-    plt.rcParams['font.weight'] = "bold"
-    plt.rcParams['font.sans-serif'] = "Calibri"
+                # word operators need spaces after them in the filter string,
+                # but we don't want these later
+                return name, operator_type[0].strip(), value
 
-# function for labeling bars - both vertical and horizontal
-# https://stackoverflow.com/questions/43214978/seaborn-barplot-displaying-values
-def show_values_on_bars(axs, h_v="v", space=0.4):
-    def _show_on_single_plot(ax):
-        if h_v == "v":
-            for p in ax.patches:
-                _x = p.get_x() + p.get_width() / 2
-                _y = p.get_y() + p.get_height()
-                value = int(p.get_height())
-                ax.text(_x, _y, value, ha="center") 
-        elif h_v == "h":
-            for p in ax.patches:
-                _x = p.get_x() + p.get_width() + float(space)
-                _y = p.get_y() + p.get_height() 
-                value = int(p.get_width())
-                ax.text(_x, _y, value, ha="left")
-
-    if isinstance(axs, np.ndarray):
-        for idx, ax in np.ndenumerate(axs):
-            _show_on_single_plot(ax)
-    else:
-        _show_on_single_plot(axs)
+    return [None] * 3
 
 print('Script: 01.03.01 [Define Functions] completed')
