@@ -51,6 +51,7 @@ import gc
 # Import modules (other scripts)
 from environment_configuration import working_directory, data_path, dash_data_path
 from environment_configuration import reviews_ind_path, reviews_agg_path, products_path
+from environment_configuration import PAGE_SIZE, operators, split_filter_part
 
 # Dash packages
 import dash
@@ -62,6 +63,9 @@ import dash_bootstrap_components as dbc
 import dash_table as dt
 from dash.dependencies import Input, Output
 
+# Dash data table
+import dash_table
+import dash_html_components as html
 
 # =============================================================================
 # 02.01.01| Import Data
@@ -90,10 +94,15 @@ gc.collect()
 # Load sample mapped product data
 sample_mapped_product = pd.read_excel(Path(working_directory + dash_data_path + '/Sample_Mapped_Product_Data.xlsx'))
 
+sample_mapped_product['Mapped Product']=sample_mapped_product['Mapped Product'].astype(str)
+sample_mapped_product['Product Code']=sample_mapped_product['Product Code'].astype(str)
+sample_mapped_product['Product Name'] = sample_mapped_product['Product Name'].str[:60] # only showing first 60 chars
 
 #Load sample mapped reviewer data
 sample_mapped_reviewer = pd.read_excel(Path(working_directory + dash_data_path + '/Sample_Mapped_Reviewer_Data.xlsx'))
 
+sample_mapped_reviewer['Product Name'] = sample_mapped_reviewer['Product Name'].str[:60] # only showing first 60 chars
+sample_mapped_reviewer['Product Code']=sample_mapped_reviewer['Product Code'].astype(str)
 
 
 # =============================================================================
@@ -124,7 +133,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # colors are in spirit of Amazon color palette
-colors = {'background': '#000000',
+colors = {#'background': '#000000',
+          'background': '#FFFFFF',
           'text': '#FF9900',
           'subtext': '#fbffae',
           'color1': '#146eb4',
@@ -164,88 +174,165 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                                 x=top_10_products['count'], 
                                 orientation='h',
                                 marker_color=colors['color1'])],   
-                'layout': {'title': 'Top 10 Products',
+                'layout': {'title': 'Top 10 Products Overall',
                            # titles are long so need to add a hefty left margin
                            'margin': {'l':500, 'pad':4}}}), 
                            #'margin': go.layout.Margin(l=500,pad=4)
                           
         # Creating tabs to use to add in the recommendation components
-        html.Div([dcc.Tabs(id="tabs", children=[
-        # Product Recommendation Tab
-            dcc.Tab(label='Product Recommendations', children=[
-             # Product Dropdown Menu
-             html.Div([dcc.Dropdown(id='product-dropdown',
-                     options=[{'label': i, 'value': i} for i in sample_mapped_product['Mapped Product'].unique()],
-                     value='Mapped Product Code',
-                     style={'width': '50%',
-                            'display': 'inline-block'})]),
-              # Product Table
-              html.Div([dt.DataTable(id='product-datatable',
-                     data=sample_mapped_product.to_dict('records'),
-                     columns=[{'name': i, 'id': i} for i in sample_mapped_product.columns],
-                     style_table={'overflowX': 'scroll'},
-                     style_cell={'height': 'auto', 
-                                 'minWidth': '0px', 
-                                 'maxWidth': '180px', 
-                                 'whiteSpace': 'normal',
-                                 'font-family':'Arial',
-                                 'fontSize':11},
-                     style_cell_conditional=[{'if': {'column_id': c}, 
-                                              'textAlign': 'left'} 
-                                              for c in ['Product Name', 'Item URL']],  
-                     style_data_conditional=[{'if': {'row_index': 'odd'}, 
-                                              'backgroundColor': 'rgb(225, 225, 225)'}],
-                     style_header={'backgroundColor': 'rgb(145, 145, 145)', 
-                                   'fontWeight': 'bold'})])]),
+       html.Div([dcc.Tabs(id="tabs", children=[
+                dcc.Tab(label='Product Recommendations', children=[
+                # Product Recommendation Tab
+                dash_table.DataTable(
+                            id='product-table',
+                            columns=[{"name": i, "id": i} for i in sample_mapped_product.columns],
+                            page_current=0,
+                            page_size=PAGE_SIZE,
+                            page_action='custom',
+                        
+                            filter_action='custom',
+                            filter_query='' ,
+                            style_cell={'padding': '5px'},
+                            style_cell_conditional=[
+                                {
+                                    'if': {'column_id': c},
+                                    'textAlign': 'left'
+                                } for c in ['Product Name']
+                            ],
+                            style_header={
+                                'backgroundColor': 'white',
+                                'fontWeight': 'bold'
+                            },
+                            style_data_conditional=[
+                                {
+                                    'if': {'row_index': 'odd'},
+                                    'backgroundColor': 'rgb(248, 248, 248)'
+                                }
+                            ],        
+                        ),
+                dcc.Markdown('''
+                             ###### Each column can be filtered based on user input.
+                             
+                             ###### For string columns, just enter a partial string such as "Nook."
+                             
+                             ###### Exception: For product columns, use quotes around filter, such as "328."
+                             
+                             ###### For numeric columns, filters such as "=5" or ">=200" are valid filters.
+                             
+                             ###### Use "Enter" to initiate and remove filters.
+                             
+                             ''')  ]),
     
           # User Recommendation Tab
           dcc.Tab(label='User Recommendations', children=[
-                # User Dropdown Menu
-                html.Div([dcc.Dropdown(id='reviewer-dropdown',
-                     options=[{'label': i, 'value': i} for i in sample_mapped_reviewer['Mapped Reviewer'].unique()],
-                     value='Mapped Reviewer ID',
-                     style={'width': '50%',
-                            'display': 'inline-block'})]),
+                
                 # User Table
-                html.Div([dt.DataTable(id='reviewer-datatable',
-                     data=sample_mapped_reviewer.to_dict('records'),
-                     columns=[{"name": i, "id": i} for i in sample_mapped_reviewer.columns],
-                     style_table={'overflowX': 'scroll'},
-                     style_cell={'height': 'auto', 
-                                 'minWidth': '0px', 
-                                 'maxWidth': '180px', 
-                                 'whiteSpace': 'normal',
-                                 'font-family':'Arial',
-                                 'fontSize':11},
-                     style_cell_conditional=[{'if': {'column_id': c}, 
-                                              'textAlign': 'left'} 
-                                              for c in ['Product Name', 'Item URL']],  
-                     style_data_conditional=[{'if': {'row_index': 'odd'}, 
-                                              'backgroundColor': 'rgb(225, 225, 225)'}],
-                     style_header={'backgroundColor': 'rgb(145, 145, 145)', 
-                                   'fontWeight': 'bold'})])])
-
-    ]),
-    html.Div(id='tabs-content')])
+                dash_table.DataTable(
+                        id='user-table',
+                        columns=[{"name": i, "id": i} for i in sample_mapped_reviewer.columns],
+                        page_current=0,
+                        page_size=PAGE_SIZE,
+                        page_action='custom',
+                    
+                        filter_action='custom',
+                        filter_query='' ,
+                        style_cell={'padding': '5px'},
+                        style_cell_conditional=[
+                            {
+                                'if': {'column_id': c},
+                                'textAlign': 'left'
+                            } for c in ['Product Name']
+                        ],
+                        style_header={
+                            'backgroundColor': 'white',
+                            'fontWeight': 'bold'
+                        },
+                        style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(248, 248, 248)'
+                            }
+                        ]),
+                
+                dcc.Markdown('''
+                             ###### Each column can be filtered based on user input.
+                             
+                             ###### For string columns, just enter a partial string such as "Nook."
+                             
+                             ###### Exception: For product columns, use quotes around filter, such as "328."
+                             
+                             ###### For numeric columns, filters such as "=5" or ">=200" are valid filters.
+                             
+                             ###### Use "Enter" to initiate and remove filters.
+                             
+                             ''')])
+        ])])
     
   ])
     
 # =============================================================================
-# 02.05.01| Dash Reactive Components
+# 02.05.01| Dash Reactive Components | Product Table
 # =============================================================================
-#@app.callback(Output('tabs-content', 'children'),
-#              [Input('tabs', 'value')])
-#
-#def render_content(tab):
-#    if tab == 'Product Recommendations':
-#        return html.Div([
-#            html.H3('Product Recommendations')
-#        ])
-#    elif tab == 'User Recommendations':
-#        return html.Div([
-#            html.H3('User Recommendations')
-#        ])
-#    
+@app.callback(
+    Output('product-table', "data"),
+    [Input('product-table', "page_current"),
+     Input('product-table', "page_size"),
+     Input('product-table', "filter_query")])
+
+
+def update_table(page_current,page_size, filter):
+    print(filter)
+    filtering_expressions = filter.split(' && ')
+    dff = sample_mapped_product # WILL NEED TO CHANGE THIS
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+
+        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+        elif operator == 'datestartswith':
+            # this is a simplification of the front-end filtering logic,
+            # only works with complete fields in standard format
+            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+    return dff.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
+
+
+# =============================================================================
+# 02.05.02| Dash Reactive Components | User Table
+# =============================================================================
+@app.callback(
+    Output('user-table', "data"),
+    [Input('user-table', "page_current"),
+     Input('user-table', "page_size"),
+     Input('user-table', "filter_query")])
+
+def update_table2(page_current,page_size, filter):
+    print(filter)
+    filtering_expressions = filter.split(' && ')
+    dff = sample_mapped_reviewer # WILL NEED TO CHANGE THIS
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+
+        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+        elif operator == 'datestartswith':
+            # this is a simplification of the front-end filtering logic,
+            # only works with complete fields in standard format
+            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+    return dff.iloc[
+        page_current*page_size:(page_current+ 1)*page_size
+    ].to_dict('records')
+    
+    
 # =============================================================================
 # 02.06.01| Run Dash
 # =============================================================================                               
