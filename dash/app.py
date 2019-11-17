@@ -130,41 +130,46 @@ top_10_products = top_10_products.sort_values('count', ascending=True)
 # =============================================================================
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+#app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # colors are in spirit of Amazon color palette
-colors = {#'background': '#000000',
-          'background': '#FFFFFF',
-          'text': '#FF9900',
-          'subtext': '#fbffae',
-          'color1': '#146eb4',
-          'color2': '#232f3e'}
+colors = {'black_col': '#000000',     # Black
+          'white_col': '#ffffff',     # White
+          'vl_gray_col': '#f2f2f2',   # Very light gray
+          'lgray_col': '#cdcdcd',     # Light gray          
+          'gray_col': '#b3b3b3',      # Gray
+          'orange_col': '#FF9900',    # Pure orange
+          's_blue_col': '#146eb4',    # Strong blue
+          'd_blue_col': '#232f3e'}    # Very dark desaturated blue
 
-app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
+app.layout = html.Div(style={'backgroundColor': colors['d_blue_col']}, children=[
         
         # CognoClick Logo
-        html.Div(children=[html.Img(src=app.get_asset_url("../assets/CognoClick_upscaled_logo.jpg"),
-                       id="cognoclick-logo",
-                       style={'height':'35px', 
-                              'width':'auto', 
-                              'margin-top':'10px',
-                              'margin-left':'10px'})]), 
-    
-#        # Amazon Logo - want these to appear side by side
-#        html.Div(children=[html.Img(src=app.get_asset_url("../assets/Amazon_Logo.png"),
-#                       id="amazon-logo",
-#                       style={'height':'32px', 
-#                              'width':'auto', 
-#                              'background':'#FFFFFF',
-#                              'margin-top':'10px',
-#                              'margin-right':'15px'})]), 
+        html.Div([dbc.Row([
+                dbc.Col(html.Div(children=[html.Img(src=app.get_asset_url("../assets/CognoClick_upscaled_logo.jpg"),
+                                                    id="cognoclick-logo",
+                                                    style={'height':'35px', 
+                                                           'width':'auto', 
+                                                           'margin-top':'10px',
+                                                           'margin-left':'10px'})])), 
 
-        # Title - Don't love the spacing but this is fine for now
-        html.H1(children='Amazon Recommendation Engine',
-                style={'textAlign': 'center',
-                       'height': '20px',
-                       'margin-bottom': '40px',
-                       'color': colors['text']}),
+        # Title
+                dbc.Col(html.H1(children='Amazon Recommendation Engine',
+                                style={'textAlign': 'center',
+                                       'font-family':'Arial',
+#                                       'height': '20px',
+#                                       'margin-bottom': '40px',
+                                       'color': colors['gray_col']})),
+    
+        # Amazon Logo
+                dbc.Col(html.Div(children=[html.Img(src=app.get_asset_url("../assets/Amazon_Logo.png"),
+                                                    id="amazon-logo",
+                                                    style={'height':'32px', 
+                                                           'width':'auto', 
+                                                           'background':'#FFFFFF',
+                                                           'margin-top':'10px',
+                                                           'margin-left':'290px'})]))])]),
     
         # Top 10 Products Bar Chart
         dcc.Graph(
@@ -173,43 +178,38 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 'data': [go.Bar(y=top_10_products['title'],
                                 x=top_10_products['count'], 
                                 orientation='h',
-                                marker_color=colors['color1'])],   
+                                marker_color=colors['orange_col'])],   
                 'layout': {'title': 'Top 10 Products Overall',
+                           'plot_bgcolor': colors['d_blue_col'],
+                           'paper_bgcolor': colors['d_blue_col'],
+                           'font': {'color': colors['white_col']},
                            # titles are long so need to add a hefty left margin
-                           'margin': {'l':500, 'pad':4}}}), 
-                           #'margin': go.layout.Margin(l=500,pad=4)
+                           'margin': {'l':500, 'pad':4}}}),
                           
         # Creating tabs to use to add in the recommendation components
-       html.Div([dcc.Tabs(id="tabs", children=[
-                dcc.Tab(label='Product Recommendations', children=[
+        html.Div([dcc.Tabs(id="tabs", 
+                           colors={'border': colors['black_col'],
+                                   'primary': colors['orange_col'],
+                                   'background': "cornsilk"},
+                           children=[
                 # Product Recommendation Tab
+                dcc.Tab(label='Product Recommendations', children=[
                 dash_table.DataTable(
-                            id='product-table',
-                            columns=[{"name": i, "id": i} for i in sample_mapped_product.columns],
-                            page_current=0,
-                            page_size=PAGE_SIZE,
-                            page_action='custom',
-                        
-                            filter_action='custom',
-                            filter_query='' ,
-                            style_cell={'padding': '5px'},
-                            style_cell_conditional=[
-                                {
-                                    'if': {'column_id': c},
-                                    'textAlign': 'left'
-                                } for c in ['Product Name']
-                            ],
-                            style_header={
-                                'backgroundColor': 'white',
-                                'fontWeight': 'bold'
-                            },
-                            style_data_conditional=[
-                                {
-                                    'if': {'row_index': 'odd'},
-                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                }
-                            ],        
-                        ),
+                        id='product-table',
+                        columns=[{"name": i, "id": i} for i in sample_mapped_product.columns],
+                        page_current=0,
+                        page_size=PAGE_SIZE,
+                        page_action='custom',
+                        filter_action='custom',
+                        filter_query='' ,
+                        style_cell={'padding': '5px',
+                                    'font-family':'Arial',
+                                    'fontSize':11},
+                        style_cell_conditional=[{'if': {'column_id': c}, 'textAlign': 'left'} for c in ['Product Name', 'Item URL']],
+                        style_header={'backgroundColor': colors['gray_col'],
+                                      'fontWeight': 'bold'},
+                        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': colors['lgray_col']}]),
+                
                 dcc.Markdown('''
                              ###### Each column can be filtered based on user input.
                              
@@ -221,38 +221,24 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                              
                              ###### Use "Enter" to initiate and remove filters.
                              
-                             ''')  ]),
+                             ''')]),
     
           # User Recommendation Tab
-          dcc.Tab(label='User Recommendations', children=[
-                
-                # User Table
+                dcc.Tab(label='User Recommendations', children=[
                 dash_table.DataTable(
                         id='user-table',
                         columns=[{"name": i, "id": i} for i in sample_mapped_reviewer.columns],
                         page_current=0,
                         page_size=PAGE_SIZE,
                         page_action='custom',
-                    
                         filter_action='custom',
                         filter_query='' ,
-                        style_cell={'padding': '5px'},
-                        style_cell_conditional=[
-                            {
-                                'if': {'column_id': c},
-                                'textAlign': 'left'
-                            } for c in ['Product Name']
-                        ],
-                        style_header={
-                            'backgroundColor': 'white',
-                            'fontWeight': 'bold'
-                        },
-                        style_data_conditional=[
-                            {
-                                'if': {'row_index': 'odd'},
-                                'backgroundColor': 'rgb(248, 248, 248)'
-                            }
-                        ]),
+                        style_cell={'padding': '5px',
+                                    'font-family':'Arial',
+                                    'fontSize':11},
+                        style_cell_conditional=[{'if': {'column_id': c}, 'textAlign': 'left'} for c in ['Product Name', 'Item URL']],
+                        style_header={'backgroundColor': colors['gray_col'], 'fontWeight': 'bold'},
+                        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': colors['lgray_col']}]),
                 
                 dcc.Markdown('''
                              ###### Each column can be filtered based on user input.
@@ -266,9 +252,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                              ###### Use "Enter" to initiate and remove filters.
                              
                              ''')])
-        ])])
-    
-  ])
+        ])])])
     
 # =============================================================================
 # 02.05.01| Dash Reactive Components | Product Table
