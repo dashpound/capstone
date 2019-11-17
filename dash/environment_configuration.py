@@ -58,6 +58,15 @@ print('Script: 01.01.01 [Set working directory and other paths] completed')
 # =============================================================================
 # 01.02.01 | Define Other Global Variables
 # =============================================================================
+# colors are in spirit of Amazon color palette
+colors = {'black_col': '#000000',     # Black
+          'white_col': '#ffffff',     # White
+          'vl_gray_col': '#f2f2f2',   # Very light gray
+          'lgray_col': '#cdcdcd',     # Light gray          
+          'gray_col': '#b3b3b3',      # Gray
+          'orange_col': '#FF9900',    # Pure orange
+          's_blue_col': '#146eb4',    # Strong blue
+          'd_blue_col': '#232f3e'}    # Very dark desaturated blue
 
 # defining length of tables
 PAGE_SIZE = 11
