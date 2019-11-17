@@ -1,0 +1,664 @@
+sudo+ssh://dashpound42@104.154.101.161:22/usr/bin/python3 -u /home/dashpound42/capstone/code/models/baseline/baseline_ratings_model_cycle_cluster.py
+Script: 01.01.02 [Import Packages] completed
+Script: 01.01.03 [Update Data Paths] completed
+Script: 01.01.04 [Define Other Global Variables] completed
+Script: 01.01.05 [Define Functions] completed
+Script: 02.00.02 [Import Packages] completed
+Script: 02.01.01 [Load Reviews Data] completed
+Script: 02.01.02 [Verify Data Load] skipped
+Script: 10.00.02 [Import packages] completed
+Script: 10.00.03 [Set seed] completed
+7.313599996905396e-05 seconds
+Now Starting Cluster...  0
+Script: 10.01.01 [Initial data frame created] completed
+1.3937560809999923 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.1674237050000329 seconds
+RMSE: 1.0997
+MAE:  0.8122
+FCP:  0.4993
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.0995  1.1029  1.0979  1.1001  0.0021
+MAE (testset)     0.8116  0.8123  0.8138  0.8125  0.0009
+FCP (testset)     0.5128  0.4994  0.4905  0.5009  0.0092
+Fit time          1.91    1.94    1.96    1.94    0.02
+Test time         0.11    0.12    0.12    0.12    0.00
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+9.154331250000041 seconds
+0.8970505880156799
+0.4243668770212335
+0.8892428785607186
+0.43226409046742137
+0.8885981308411208
+0.433339224134396
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+6.927697954999985 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.04832720199999585 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2701
+MAE:  0.8875
+FCP:  0.4752
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2655  1.2902  1.2647  1.2734  0.0118
+MAE (testset)     0.8840  0.8993  0.8836  0.8890  0.0073
+FCP (testset)     0.4727  0.4880  0.4925  0.4844  0.0085
+Fit time          15.22   15.00   14.58   14.93   0.26
+Test time         0.23    0.24    0.24    0.23    0.01
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+61.49718381900004 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7780163026569595
+0.5020788567821796
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7794852573713138
+0.5105973811628272
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7808411214953268
+0.5072283982764838
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+43.93376043599983 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+5.257548858000064 seconds
+Now Starting Cluster...  1
+Script: 10.01.01 [Initial data frame created] completed
+5.654944780000051 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.10488832900000489 seconds
+RMSE: 1.0254
+MAE:  0.7723
+FCP:  0.5236
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.0664  1.0468  1.0512  1.0548  0.0084
+MAE (testset)     0.7943  0.7884  0.7904  0.7910  0.0025
+FCP (testset)     0.5204  0.5116  0.4926  0.5082  0.0116
+Fit time          1.52    1.49    1.55    1.52    0.02
+Test time         0.09    0.18    0.09    0.12    0.05
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+7.124302824999859 seconds
+0.8987819523074282
+0.4157748286230689
+0.8987758945386061
+0.41460970348798526
+0.8951420792921554
+0.40540831756833484
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+5.599807490000103 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.041433886000049824 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2109
+MAE:  0.8613
+FCP:  0.4940
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2066  1.1892  1.2016  1.1991  0.0073
+MAE (testset)     0.8570  0.8511  0.8548  0.8543  0.0025
+FCP (testset)     0.4954  0.4910  0.4998  0.4954  0.0036
+Fit time          11.00   11.07   10.62   10.90   0.20
+Test time         0.26    0.19    0.19    0.22    0.03
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+44.986066488999995 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7733316177732029
+0.49312906010315877
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7717428522513268
+0.5022575217186653
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7702058873574958
+0.48410064597844615
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+32.72800437900014 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+3.665715144999922 seconds
+Now Starting Cluster...  2
+Script: 10.01.01 [Initial data frame created] completed
+4.15634680900007 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.5412190580000242 seconds
+RMSE: 1.1196
+MAE:  0.8439
+FCP:  0.5562
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.1206  1.1193  1.1190  1.1197  0.0007
+MAE (testset)     0.8494  0.8468  0.8487  0.8483  0.0011
+FCP (testset)     0.5546  0.5599  0.5677  0.5607  0.0054
+Fit time          6.12    5.96    5.85    5.98    0.11
+Test time         0.53    0.52    0.52    0.52    0.01
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+28.447686935000092 seconds
+0.9092414818820975
+0.40422223468611573
+0.9088882854750752
+0.3993203881464882
+0.912596255899555
+0.39485596300191805
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+20.773049785000012 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.17029028899992227 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2656
+MAE:  0.9154
+FCP:  0.5429
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2741  1.2792  1.2784  1.2772  0.0022
+MAE (testset)     0.9202  0.9238  0.9230  0.9223  0.0015
+FCP (testset)     0.5490  0.5511  0.5418  0.5473  0.0040
+Fit time          51.71   49.56   52.47   51.25   1.23
+Test time         0.96    1.10    1.10    1.05    0.07
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+212.16789314999983 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7741572020912206
+0.5143129054538542
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7694204964587159
+0.5108182398762625
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7771379536165134
+0.5106336702532481
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+158.860188138 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+18.932238763999976 seconds
+Now Starting Cluster...  3
+Script: 10.01.01 [Initial data frame created] completed
+19.429242880999936 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.14752093900006003 seconds
+RMSE: 1.1102
+MAE:  0.8326
+FCP:  0.5068
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.1244  1.1093  1.1381  1.1239  0.0117
+MAE (testset)     0.8405  0.8336  0.8487  0.8409  0.0062
+FCP (testset)     0.5013  0.5093  0.4998  0.5035  0.0041
+Fit time          1.89    1.90    1.93    1.91    0.02
+Test time         0.11    0.11    0.24    0.15    0.06
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+9.051820421000002 seconds
+0.8970712560386463
+0.41424553186717034
+0.9061858161169497
+0.4075710403618479
+0.8874213836477981
+0.4265533997456968
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+6.835220381999989 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.051094890999820564 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.3005
+MAE:  0.9203
+FCP:  0.4886
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2953  1.2837  1.3044  1.2945  0.0085
+MAE (testset)     0.9150  0.9052  0.9258  0.9154  0.0084
+FCP (testset)     0.4805  0.4938  0.4963  0.4902  0.0069
+Fit time          14.79   15.52   14.49   14.93   0.43
+Test time         0.29    0.22    0.22    0.25    0.03
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+60.648384437999994 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7800120772946859
+0.49657012756133156
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7839192944303487
+0.49497887696461124
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7772985923929325
+0.5001125371819796
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+44.615743861000055 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+5.130651602999933 seconds
+Now Starting Cluster...  4
+Script: 10.01.01 [Initial data frame created] completed
+5.51826058000006 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.09403939599997102 seconds
+RMSE: 1.0822
+MAE:  0.8170
+FCP:  0.5010
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.1007  1.0943  1.1173  1.1041  0.0097
+MAE (testset)     0.8326  0.8211  0.8400  0.8312  0.0078
+FCP (testset)     0.4824  0.4863  0.4900  0.4862  0.0031
+Fit time          1.13    1.15    1.16    1.15    0.01
+Test time         0.14    0.07    0.07    0.09    0.03
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+5.562259109000024 seconds
+0.9109437751004019
+0.38617508476584955
+0.9093708977077654
+0.38273782362019204
+0.9065458207452161
+0.3975718696951148
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+4.073472624000033 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.030396450000125697 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2749
+MAE:  0.9035
+FCP:  0.4680
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2676  1.2690  1.2424  1.2597  0.0122
+MAE (testset)     0.9039  0.9032  0.8950  0.9007  0.0041
+FCP (testset)     0.4629  0.4853  0.4716  0.4732  0.0092
+Fit time          7.44    7.02    7.69    7.38    0.28
+Test time         0.18    0.13    0.13    0.15    0.02
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+30.45213680400002 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7920180722891568
+0.4695896720410968
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7865798242956681
+0.45655979756180654
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7859516616314199
+0.4692273987637863
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+23.176170791000004 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+2.544996516000083 seconds
+Now Starting Cluster...  5
+Script: 10.01.01 [Initial data frame created] completed
+2.9850046610001755 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.27088021300005494 seconds
+RMSE: 1.0635
+MAE:  0.7891
+FCP:  0.5249
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.0751  1.0780  1.0684  1.0738  0.0040
+MAE (testset)     0.8004  0.8020  0.7954  0.7993  0.0028
+FCP (testset)     0.5345  0.5380  0.5380  0.5368  0.0016
+Fit time          3.84    3.86    3.99    3.89    0.06
+Test time         0.24    0.35    0.34    0.31    0.05
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+18.449470079000093 seconds
+0.8929654232669068
+0.4350460986221338
+0.8891682057596287
+0.43680477052011696
+0.890003754138086
+0.44336454948560344
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+13.94177803399998 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.10051444700002321 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2167
+MAE:  0.8599
+FCP:  0.5113
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2213  1.2272  1.2148  1.2211  0.0051
+MAE (testset)     0.8669  0.8682  0.8604  0.8652  0.0034
+FCP (testset)     0.5190  0.5171  0.5174  0.5179  0.0009
+Fit time          29.09   30.18   30.25   29.84   0.53
+Test time         0.56    0.58    0.57    0.57    0.00
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+123.21927034399982 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7679100664282079
+0.5443786484001373
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7691018537519674
+0.5299476489774643
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7675505955428146
+0.5453489428808465
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+92.1235287080001 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+10.732762749999893 seconds
+Now Starting Cluster...  6
+Script: 10.01.01 [Initial data frame created] completed
+11.216613443999904 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.17982446399992114 seconds
+RMSE: 1.1113
+MAE:  0.8543
+FCP:  0.5645
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.1177  1.1243  1.1159  1.1193  0.0036
+MAE (testset)     0.8603  0.8589  0.8584  0.8592  0.0008
+FCP (testset)     0.5704  0.5565  0.5471  0.5580  0.0096
+Fit time          2.59    2.52    2.51    2.54    0.04
+Test time         0.16    0.26    0.27    0.23    0.05
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+12.141315270000177 seconds
+0.9261626162616261
+0.34060329340980694
+0.936126126126126
+0.3425262663137881
+0.9358651307895369
+0.33246717155262023
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+8.807545909000055 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.06195608100006211 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2901
+MAE:  0.9404
+FCP:  0.5429
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2748  1.2886  1.2888  1.2841  0.0065
+MAE (testset)     0.9327  0.9416  0.9429  0.9391  0.0045
+FCP (testset)     0.5347  0.5460  0.5540  0.5449  0.0079
+Fit time          22.89   21.93   22.52   22.45   0.39
+Test time         0.56    0.45    0.45    0.49    0.05
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+92.78581156400014 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7601260126012601
+0.4681196297761714
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7708108108108108
+0.46249049316055724
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.762479001679866
+0.4673802259682115
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+68.12193766999962 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+7.348563192999791 seconds
+Now Starting Cluster...  7
+Script: 10.01.01 [Initial data frame created] completed
+7.894672676000027 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.663251118000062 seconds
+RMSE: 1.1174
+MAE:  0.8393
+FCP:  0.5282
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.1294  1.1265  1.1314  1.1291  0.0020
+MAE (testset)     0.8491  0.8479  0.8503  0.8491  0.0010
+FCP (testset)     0.5356  0.5344  0.5398  0.5366  0.0023
+Fit time          7.01    6.94    7.10    7.02    0.06
+Test time         0.65    0.61    0.65    0.64    0.02
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+33.34550208499968 seconds
+0.9084541416508009
+0.4315588843757567
+0.9100809920306412
+0.43094254377801544
+0.9096268147715066
+0.43174469753641426
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+27.548872214999847 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.20927625900003477 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2795
+MAE:  0.9185
+FCP:  0.5166
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2887  1.2873  1.2858  1.2873  0.0012
+MAE (testset)     0.9269  0.9247  0.9204  0.9240  0.0027
+FCP (testset)     0.5194  0.5221  0.5287  0.5234  0.0039
+Fit time          59.30   58.65   58.01   58.65   0.53
+Test time         1.07    0.84    1.05    0.99    0.10
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+243.1864945100001 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7750768780202075
+0.5369296607360625
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7804612812647083
+0.5396724122279251
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7788333495728983
+0.5390551449503382
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+183.34609240700001 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+25.156664268999975 seconds
+Now Starting Cluster...  8
+Script: 10.01.01 [Initial data frame created] completed
+25.683346536000045 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.127209825999671 seconds
+RMSE: 1.0553
+MAE:  0.7909
+FCP:  0.4958
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.0809  1.0735  1.0641  1.0728  0.0069
+MAE (testset)     0.8076  0.8014  0.7980  0.8023  0.0040
+FCP (testset)     0.5002  0.4950  0.5035  0.4996  0.0035
+Fit time          1.67    1.64    1.66    1.66    0.01
+Test time         0.09    0.24    0.09    0.14    0.07
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+7.822385541000131 seconds
+0.8883329163539316
+0.41319483737035123
+0.9004820078118496
+0.4053414661773356
+0.8903915184906919
+0.4142473006019143
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+6.010888698000144 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.04638804699970933 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2236
+MAE:  0.8672
+FCP:  0.4917
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2238  1.2242  1.2185  1.2222  0.0026
+MAE (testset)     0.8660  0.8709  0.8654  0.8674  0.0025
+FCP (testset)     0.4783  0.4952  0.4751  0.4829  0.0088
+Fit time          11.24   11.35   11.16   11.25   0.08
+Test time         0.19    0.20    0.20    0.19    0.00
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+47.4450653429999 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7867984321574513
+0.49182611304221846
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7779024349704983
+0.4795814287404761
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7832874196510559
+0.48987749511819684
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+35.502506560000256 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+3.821177915000135 seconds
+Now Starting Cluster...  9
+Script: 10.01.01 [Initial data frame created] completed
+4.337960218000262 seconds
+Script: 10.02.01 [Train and test sets created] completed
+0.5867023929999959 seconds
+RMSE: 1.0665
+MAE:  0.8048
+FCP:  0.5620
+Evaluating RMSE, MAE, FCP of algorithm SVD on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.0629  1.0783  1.0710  1.0708  0.0063
+MAE (testset)     0.8038  0.8113  0.8076  0.8076  0.0031
+FCP (testset)     0.5688  0.5697  0.5681  0.5689  0.0007
+Fit time          6.56    6.60    6.75    6.64    0.08
+Test time         0.57    0.58    0.58    0.57    0.01
+Script: 10.03.01 [SVD model and initial GOF statistics] completed
+31.614325233000272 seconds
+0.8989311671654567
+0.366030427683144
+0.8976358935015515
+0.37425727347494736
+0.8972300509579535
+0.369582687901074
+Script: 10.03.02 [Remaining GOF statistics for SVD model] completed
+24.20762467700024 seconds
+Script: 10.04.01 [Save SVD Model] completed
+0.177136487000098 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+RMSE: 1.2183
+MAE:  0.8798
+FCP:  0.5566
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+Evaluating RMSE, MAE, FCP of algorithm KNNWithMeans on 3 split(s).
+
+                  Fold 1  Fold 2  Fold 3  Mean    Std
+RMSE (testset)    1.2156  1.2123  1.2101  1.2127  0.0023
+MAE (testset)     0.8766  0.8766  0.8750  0.8761  0.0008
+FCP (testset)     0.5486  0.5523  0.5601  0.5537  0.0048
+Fit time          66.86   62.30   62.30   63.82   2.15
+Test time         1.83    1.51    1.74    1.69    0.13
+Script: 10.05.01 [KNN model and initial GOF statistics] completed
+262.7623968779999 seconds
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7398888413852085
+0.49353680368176633
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.734180092632059
+0.5011883921222318
+Computing the pearson similarity matrix...
+Done computing similarity matrix.
+0.7376519486434951
+0.4936710059242215
+Script: 10.05.02 [Remaining GOF statistics for KNN model] completed
+197.90559831500013 seconds
+Script: 10.06.01 [Saved KNN Model] completed
+19.081578508999883 seconds
+Script 10 Completed
+
+Process finished with exit code 0
