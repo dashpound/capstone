@@ -3,7 +3,7 @@
 # ===============================================================================
 # Name:               04_product_metadata_features
 # Author:             Rodd
-# Last Edited Date:   10/19/19
+# Last Edited Date:   11/17/19
 # Description:        Create relevant metataa features from the product data set.
 #                     
 # Notes:              Did not process the related field b/c unclear how it will be used.
@@ -22,20 +22,21 @@
 #                     Data frame is pickled and saved to the data folder.
 #                     Some features are transformed via one-hot encoding.
 #                     One-hot encoded data frame is saved to the data folder.
+#                     Saved URL to dashboard data
 #
 #
 # =============================================================================
 # 04.00.02 | Import Modules & Packages
 # =============================================================================
 # Import packages
-import numpy as np
 import pandas as pd
 import gc
 import pickle
+from pathlib import Path
 
 # Import modules (other scripts)
 from code.dataprep.data_load import reviews_df, metadata_df, qa_df
-from code.configuration.environment_configuration import set_levels
+from code.configuration.environment_configuration import working_directory
 from code.configuration.functions import conv_pivot2df
 
 print('Script: 04.00.02 [Import Packages] completed')
@@ -277,9 +278,9 @@ print('Script: 04.11.01 [Handle electronics sales rank data] completed')
 # =============================================================================
 # 04.12.01 | Save data set
 # =============================================================================
-product_final.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_no_one_hot_encoding.pkl")
+product_final.to_pickle(Path(working_directory+'/data/pickles/enhanced'+'/product_metadata_no_one_hot_encoding.pkl'))
 
-# df = pd.read_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_no_one_hot_encoding.pkl")
+# df = pd.read_pickle(Path(working_directory+'/data/pickles/enhanced'+'/product_metadata_no_one_hot_encoding.pkl'))
 
 print('Script: 04.12.01 [Pickle products data] completed')
 
@@ -327,9 +328,22 @@ print('Script: 04.15.01 [Remove other category columns] completed')
 # =============================================================================
 # 04.16.01 | Save one-hot encoded data set
 # =============================================================================
-product_one_hot.to_pickle("C:\\Users\\julia\\OneDrive\\Documents\\Code\\capstone\\data\\product_metadata_one_hot_encoding.pkl")
+product_one_hot.to_pickle(Path(working_directory+'/data/pickles/enhanced'+'/product_metadata_one_hot_encoding.pkl'))
 
 print('Script: 04.16.01 [Pickle one-hot encoding data] completed')
+
+
+# =============================================================================
+# 04.17.01 | Add URL and create product dashboard data
+# =============================================================================
+product_data = pd.read_pickle(Path(working_directory+'/data/pickles/enhanced'+'/product_metadata_no_one_hot_encoding.pkl'))
+
+# add in URL
+product_data = pd.merge(product_data, metadata_df[['asin','imUrl']], on='asin', how='left')
+
+product_data.to_pickle(Path(working_directory+'/data/pickles/enhanced'+'/product_metadata_dashboard.pkl'))
+
+print('Script: 04.17.01 [Add URL and create product dashboard data] completed')
 
 
 # =============================================================================
