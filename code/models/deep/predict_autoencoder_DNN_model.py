@@ -35,7 +35,7 @@ from code.configuration.environment_configuration import *
 #from data_load import *
 
 #print output
-verbose = True
+verbose = False
 
 #display TSNE visuals - very time intenstive
 show_visuals = True
@@ -102,17 +102,21 @@ for j in range(predictions):
                'price_t', 'numberQuestions', 'numberReviews',
                'meanStarRating', 'Category_', 'cat_idx', 'idx']
     
-    orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin','title']]]*10).reset_index()
-    pred_product = sim_df[['idx', 'asin', 'cdist', 'title', 'category2_t',
-      'category3_t', 'price_t', 'numberReviews', 'meanStarRating'
-    ]].sort_values(by = 'cdist', ascending = False).reset_index()
+    orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin']]]*10).reset_index(drop=True)
+    pred_product = sim_df[['idx', 'asin', 'cdist'
+    ]].sort_values(by = 'cdist', ascending = False).reset_index(drop=True)
     dash_predict = dash_predict.append(pd.merge(orig_product, pred_product, 
                                                 how='inner', left_index=True, 
                                                 right_index=True))
     if(verbose):
         print(sim_df[cols].sort_values(by='cdist', ascending=False))
 
-dash_predict.reset_index(inplace=True)
+dash_predict.rename(columns={"idx_x": "original_product_id_int",
+                             "asin_x": "original_product_id",
+                             "idx_y": "recommended_product_id_int",
+                             "asin_y": "recommended_product_id",
+                             "cdist": "predicted_rating"}, inplace=True)
+dash_predict.reset_index(drop=True, inplace=True)
 dash_predict.to_pickle('./data/pickles/enhanced/dnn_autoencoder_20_predictions.pkl')
 print('Script: 10.04.01 [Find similar products] completed')
 # =============================================================================
