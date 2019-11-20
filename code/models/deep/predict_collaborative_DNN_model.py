@@ -37,7 +37,7 @@ from code.configuration.environment_configuration import *
 #from data_load import *
 
 #console output flag
-verbose = True
+verbose = False
 #create data files flag
 create_data_files = False
 
@@ -140,31 +140,51 @@ print('Script: 08.01.01 [Create sim function] completed')
 # 08.02.01 | Create predictions for unreviewed products by specified reviewer
 # =============================================================================
 #control variables
-reviewers = 2
+reviewers = 20
 numPredictions = 10
 pd.set_option('display.max_columns', 50)
+dash_predict = pd.DataFrame()
 
 #get random reviewer ID
 def get_predictions_by_random_reviewer():
-    rev_id = merged_3.reviewerID.value_counts().index[random.randint(0,merged_3.reviewerID.nunique())]
+    i = random.randint(0,merged_3.reviewerID.nunique())
+    rev_id = merged_3.reviewerID.value_counts().index[i]
     x, y = get_sim_products_by_user(rev_id)
-    print("------------------------------------------------")
-    print("Products reviewed by {}:".format(rev_id))
-    print(x[['prodIdx','asin','description',
-             'title','category2_t', 'category3_t',
-             'price_t','meanStarRating']])
-    print("------------------------------------------------")
-    print("Top {} products for {}:".format(numPredictions, rev_id))
-    print(y[['prodIdx','asin','description',
-             'title','category2_t', 'category3_t',
-             'price_t','meanStarRating',
-             'p_ratings']].sort_values(by='p_ratings', 
-    ascending=False).head(numPredictions))
-    print("------------------------------------------------\n")
+    
+    user_d = pd.DataFrame(merged_3.loc[merged_3.reviewerID==rev_id,['userIdx','reviewerID']].drop_duplicates())
+    user_d = pd.concat([user_d]*10).reset_index(drop=True)
+    pred_product = y[['prodIdx', 'asin', 'p_ratings']]
+    dp = pd.DataFrame(pd.merge(user_d, pred_product, 
+                                                how='inner', left_index=True, 
+                                                right_index=True))
+    if(verbose):
+        print("------------------------------------------------")
+        print("Products reviewed by {}:".format(rev_id))
+        print(x[['prodIdx','asin','description',
+                 'title','category2_t', 'category3_t',
+                 'price_t','meanStarRating']])
+        print("------------------------------------------------")
+        print("Top {} products for {}:".format(numPredictions, rev_id))
+        print(y[['prodIdx','asin','description',
+                 'title','category2_t', 'category3_t',
+                 'price_t','meanStarRating',
+                 'p_ratings']].sort_values(by='p_ratings', 
+        ascending=False).head(numPredictions))
+        print("------------------------------------------------\n")
+        
+    return dp
     
 #loop through reviewer predictions
-for x in range(2):
+for x in range(reviewers):
     print("Get Reviews - {} of {}".format(x+1, reviewers))
-    get_predictions_by_random_reviewer()
+    dash_predict = dash_predict.append(get_predictions_by_random_reviewer())
+ 
+dash_predict.rename(columns={"userIdx": "original_reviewerID_int",
+                             "reviewerID": "original_reviewerID",
+                             "prodIdx": "recommended_product_id_int",
+                             "asin": "recommended_product_id",
+                             "p_ratings": "predicted_rating"}, inplace=True)
+dash_predict.reset_index(drop=True, inplace=True)
+dash_predict.to_pickle('./data/pickles/enhanced/dnn_user_prod_dense_20_predictions.pkl')    
     
 print('Script: 08.02.01 [Create predictions for reviewers] completed')
