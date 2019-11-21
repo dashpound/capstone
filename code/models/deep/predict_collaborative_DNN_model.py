@@ -46,6 +46,9 @@ merged_3 = load("./data/pickles/enhanced/dnn_merged_3.gz")
 user_df = load("./data/pickles/enhanced/dnn_user_df.gz")
 prod_df = load("./data/pickles/enhanced/dnn_prod_df.gz")
 tfidf_df = load("./data/pickles/enhanced/dnn_tfidf_df.gz")
+tfidf_df.drop(columns=['userIdx','prodIdx'], inplace=True)
+item_df = pd.merge(prod_df, tfidf_df, how='inner', left_index=True, right_index=True)
+
 """
 merged_3 = pd.read_pickle("./data/pickles/enhanced/dnn_merged_3.pkl")
 user_df = pd.read_pickle("./data/pickles/enhanced/dnn_user_df.pkl")
@@ -67,7 +70,7 @@ dependencies = {
     'r2_keras': r2_keras
 }
 #load dnn model
-model = keras.models.load_model('./code/models/deep/models/merged_2_embedding_2L_6_3_64f_20191117_cat_nlp.h5',
+model = keras.models.load_model('./code/models/deep/models/merged_2embedding_2L_min_func_f_20191120_cat_nlp.h5',
                                 custom_objects=dependencies)
 
 print('Script: 08.00.02 [Import packages] completed')
@@ -88,50 +91,60 @@ def get_sim_products_by_user(rev_id):
     test['userIdx'] = u_test_idx.idx
     
     #setup product DF for predictions
-    prod_avg = prod_df[['prodIdx', 'price_t', 'numberQuestions', 'numberReviews',
+    prod_avg = item_df[['prodIdx', 'price_t', 'numberQuestions', 'numberReviews',
                         'meanStarRating', 'cat_idx']].groupby(by='prodIdx').mean()
+    
+    
+    prod_avg = item_df.groupby(by='prodIdx').mean()
+    prod_avg.reset_index(inplace=True)
     #prod_unq = prod_df.drop_duplicates()
     #prod_test_pop = pd.merge(prod_avg, prod_unq, how='inner', on='prodIdx')
     prod_test_user = pd.merge(test.prodIdx, prod_avg, how='inner', on='prodIdx')
-    t=tfidf_df[tfidf_df.userIdx!=u_test_idx.idx].iloc[:,1:].drop_duplicates()
-    prod_tfidf_user = pd.merge(test.prodIdx, t, how='inner', on='prodIdx')
-    prod_tfidf_user.drop(columns=['prodIdx'], inplace=True)
+    #t=tfidf_df[tfidf_df.userIdx!=u_test_idx.idx].iloc[:,1:].drop_duplicates()
+    #prod_tfidf_user = pd.merge(test.prodIdx, t, how='inner', on='prodIdx')
+    #prod_tfidf_user.drop(columns=['prodIdx'], inplace=True)
+    
     #setup user DF for predictions
     #u=user_df[user_df.userIdx==u_test_idx.idx].drop_duplicates()
     u=user_df[user_df.userIdx==u_test_idx.idx].groupby(by='userIdx').mean().reset_index()
     user_test_user = pd.concat([u]*prod_test_user.shape[0], ignore_index=True)
-    [prod_test_user.shape,
-    user_test_user.shape,
-    prod_tfidf_user.shape]
+    [user_test_user.shape,
+    prod_test_user.shape]#,
+    #prod_tfidf_user.shape]
 
     #predict ratings
     #test_predictions = model.predict([test.user_idx.astype(float).values, test.prod_idx.astype(float).values])
     test_predictions = model.predict([user_test_user.astype(float).values, 
-                                      prod_test_user.astype(float).values,
-                                      prod_tfidf_user.astype(float).values])
+                                      prod_test_user.astype(float).values])
+                                      #prod_tfidf_user.astype(float).values])
     
     test['p_ratings'] = test_predictions
     
     #print prediction distribution
     if(verbose):
         plt.figure()
-        test.p_ratings.round(2).hist()
-        
-    #top predicted products by rating
+        test.p_ratings.round(2).hist(bins=10000)
+    
     df_columns = ['asin', 'description', 'title', 'category2_t', 'category3_t',
        'category4_t', 'category5_t', 'category6_t', 'hasDescription',
        'price_t', 'containsAnySalesRank', 'numberQuestions', 'numberReviews',
        'meanStarRating', 'Category_', 'cat_idx', 'idx']
-    y = pd.merge(products_clean.loc[:,df_columns], test.sort_values(
-            by='p_ratings', ascending=False).head(10)[['prodIdx','p_ratings']], 
-                 how='inner', left_on='idx', right_on='prodIdx')
-    y.drop(['idx'], axis=1, inplace=True)
     
     #products reviewed by reviewer
     x = pd.merge(products_clean.loc[:,df_columns], 
              merged_3.loc[merged_3.reviewerID == rev_id,['reviewerID','asin',
+                                                         'overall',
                                                          'userIdx','prodIdx']], 
-             how='inner', on='asin')
+             how='inner', on='asin')    
+    ##x[['cat_idx','overall']].groupby(by='cat_idx').mean()
+    
+    #top predicted products by rating 
+    y = pd.merge(products_clean.loc[:,df_columns], test[['prodIdx','p_ratings']], 
+                 how='inner', left_on='idx', right_on='prodIdx')
+    y = y[y.cat_idx.isin(x.cat_idx.drop_duplicates())]
+    y = y.sort_values(by='p_ratings', ascending=False).head(numPredictions)
+    y.drop(['idx'], axis=1, inplace=True)
+    y.reset_index(inplace=True)
                  
     return x, y
 

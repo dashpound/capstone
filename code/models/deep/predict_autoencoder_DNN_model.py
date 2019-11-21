@@ -36,6 +36,7 @@ from code.configuration.environment_configuration import *
 
 #print output
 verbose = False
+create_data_files = True
 
 #display TSNE visuals - very time intenstive
 show_visuals = True
@@ -52,17 +53,22 @@ prod_df = load("./data/pickles/enhanced/dnn_prod_df.gz")
 print('Script: 08.00.02 [Import packages] completed')
 
 # =============================================================================
-# 10.02.01 | Create Scipy cosine distance function
+# 10.02.01 | Create Scipy cosine and euclidean distance function
 # =============================================================================
 import scipy.spatial.distance
-def cos_cdist(matrix, vector):
+from sklearn.preprocessing import MinMaxScaler
+def scipy_dist(matrix, vector, metric='euclidean'):
     """
     Compute the cosine distances between each row of matrix and vector.
     """
     v = vector.reshape(1, -1)
-    return 1-scipy.spatial.distance.cdist(matrix, v, 'cosine').reshape(-1)
+    d = scipy.spatial.distance.cdist(matrix, v, metric).reshape(-1)
+    if metric == 'euclidean':
+        return MinMaxScaler().fit_transform((d*-1).reshape(-1,1))
+    else: 
+        return 1-d
 
-print('Script: 10.02.01 [Create scipy cosine dist. func] completed')
+print('Script: 10.02.01 [Create scipy dist. func] completed')
 
 # =============================================================================
 # 10.03.01 | Setup sklearn cosine distance function
@@ -75,7 +81,9 @@ print('Script: 10.03.01 [Imported sklearn cosine dist. func] completed')
 # =============================================================================
 # 10.04.01 | Find similar products by a given product
 # =============================================================================
-dash_predict = pd.DataFrame()
+if(create_data_files):
+    dash_predict = pd.DataFrame()
+
 predictions = 20
 for j in range(predictions):
     i = random.randint(0,len(encoded_items))
@@ -91,33 +99,36 @@ for j in range(predictions):
         sim_df = sim_sk_df
     else:
         #products_clean.loc[products_clean.asin==prod_df.iloc[i].name,:]
-        sim_cpy = cos_cdist(encoded_items, x)
+        sim_cpy = scipy_dist(encoded_items, x)
         sim_cpy_results = pd.DataFrame(sim_cpy, columns=['cdist'])
         sim_cpy_df = pd.merge(products_clean, sim_cpy_results.nlargest(10, 'cdist'), how='inner',
                           left_index=True, right_index=True)
         sim_df = sim_cpy_df
     
     cols = ['cdist', 'asin', 'description', 'title', 'category2_t', 'category3_t',
-               'category4_t', 'category5_t', 'category6_t', 
+               #'category4_t', 'category5_t', 'category6_t', 
                'price_t', 'numberQuestions', 'numberReviews',
                'meanStarRating', 'Category_', 'cat_idx', 'idx']
     
-    orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin']]]*10).reset_index(drop=True)
-    pred_product = sim_df[['idx', 'asin', 'cdist'
-    ]].sort_values(by = 'cdist', ascending = False).reset_index(drop=True)
-    dash_predict = dash_predict.append(pd.merge(orig_product, pred_product, 
-                                                how='inner', left_index=True, 
-                                                right_index=True))
+    if(create_data_files):
+        orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin']]]*10).reset_index(drop=True)
+        pred_product = sim_df[['idx', 'asin', 'cdist'
+        ]].sort_values(by = 'cdist', ascending = False).reset_index(drop=True)
+        dash_predict = dash_predict.append(pd.merge(orig_product, pred_product, 
+                                                    how='inner', left_index=True, 
+                                                    right_index=True))
     if(verbose):
+        print("--------------------------------------------------")
         print(sim_df[cols].sort_values(by='cdist', ascending=False))
 
-dash_predict.rename(columns={"idx_x": "original_product_id_int",
-                             "asin_x": "original_product_id",
-                             "idx_y": "recommended_product_id_int",
-                             "asin_y": "recommended_product_id",
-                             "cdist": "predicted_rating"}, inplace=True)
-dash_predict.reset_index(drop=True, inplace=True)
-dash_predict.to_pickle('./data/pickles/enhanced/dnn_autoencoder_20_predictions.pkl')
+if(create_data_files):
+    dash_predict.rename(columns={"idx_x": "original_product_id_int",
+                                 "asin_x": "original_product_id",
+                                 "idx_y": "recommended_product_id_int",
+                                 "asin_y": "recommended_product_id",
+                                 "cdist": "predicted_rating"}, inplace=True)
+    dash_predict.reset_index(drop=True, inplace=True)
+    dash_predict.to_pickle('./data/pickles/enhanced/dnn_autoencoder_20_predictions.pkl')
 print('Script: 10.04.01 [Find similar products] completed')
 # =============================================================================
 # 10.05.01 | Visualize similar items using TSNE

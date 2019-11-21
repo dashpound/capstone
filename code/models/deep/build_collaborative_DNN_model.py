@@ -39,7 +39,7 @@ from code.dataprep.data_load import *
 #console output flag
 verbose = True
 #create data files flag
-create_data_files = True
+create_data_files = False
 
 print('Script: 07.00.02 [Import packages] completed')
 # =============================================================================
@@ -198,29 +198,38 @@ from tensorflow.keras import backend as K
 
 #clear prior session before running
 K.clear_session()
-
+model = None
 user_cols = user_df.shape[1]
 prod_cols = prod_df.shape[1]
 tfidf_cols = tfidf_df.shape[1]
+
+item_cols = prod_cols + tfidf_cols
 #user_cols = 1
 #prod_cols = 1
 user_dim = user_df.shape[0]
 user_input = layers.Input(shape=(user_cols,), name = 'user')
-item_input = layers.Input(shape=(prod_cols,), name = 'item')
-tfidf_input = layers.Input(shape=(tfidf_cols,), name = 'tfidf')
+item_input = layers.Input(shape=(item_cols,), name = 'item')
+#tfidf_input = layers.Input(shape=(tfidf_cols,), name = 'tfidf')
 
 #starting at 100
+def get_embedding_size(m):
+    return(int(min(50, round((m+1)/2,0))))
 #embedding_size = 50
 
+user_dim = get_embedding_size(user_cols)
+prod_dim = get_embedding_size(prod_cols)
+tfidf_dim = get_embedding_size(tfidf_cols)
+
+item_dim = get_embedding_size(prod_cols+tfidf_cols)
 # input_dim: int > 0. Size of the vocabulary, i.e. maximum integer index + 1.
 # output_dim: int >= 0. Dimension of the dense embedding.
 # input_length: Length of input sequences, when it is constant. 
-user_embedding = layers.Embedding(output_dim = 6, input_dim = len(u_uniq),
+user_embedding = layers.Embedding(output_dim = user_dim, input_dim = len(u_uniq),
                            input_length = user_cols, name = 'user_embedding')(user_input)
-item_embedding = layers.Embedding(output_dim = 3, input_dim = len(p_uniq),
-                           input_length = prod_cols, name = 'item_embedding')(item_input)
-tfidf_embedding = layers.Embedding(output_dim = 64, input_dim = len(p_uniq),
-                           input_length = tfidf_cols, name = 'tfidf_embedding')(tfidf_input)
+item_embedding = layers.Embedding(output_dim = item_dim, input_dim = len(p_uniq),
+                           input_length = item_cols, name = 'item_embedding')(item_input)
+#tfidf_embedding = layers.Embedding(output_dim = tfidf_dim, input_dim = len(p_uniq)+1,
+#                           input_length = tfidf_cols, name = 'tfidf_embedding')(tfidf_input)
 
 # reshape from shape: (samples, input_length, embedding_size)
 # to shape: (samples, input_length * embedding_size) which is
@@ -229,16 +238,16 @@ user_vecs = layers.Flatten(name="FlattenUser")(user_embedding)
 user_vecs_d = layers.Dropout(0.25, name="Dropout_u_1")(user_vecs)
 item_vecs = layers.Flatten(name="FlattenItem")(item_embedding)
 item_vecs_d = layers.Dropout(0.25, name="Dropout_i_1")(item_vecs)
-tfidf_vecs = layers.Flatten(name="FlattenTfidf")(tfidf_embedding)
-tfidf_vecs_d = layers.Dropout(0.25, name="Dropout_t_1")(tfidf_vecs)
+#tfidf_vecs = layers.Flatten(name="FlattenTfidf")(tfidf_embedding)
+#tfidf_vecs_d = layers.Dropout(0.25, name="Dropout_t_1")(tfidf_vecs)
 
 # concatenate user_vecs and item_vecs
-input_vecs = layers.Concatenate(name="Concat")([user_vecs, item_vecs,tfidf_vecs])
-input_vecs = layers.Dropout(0.2, name="Dropout_2")(input_vecs)
+input_vecs = layers.Concatenate(name="Concat")([user_vecs, item_vecs])#,tfidf_vecs])
+input_vecs = layers.Dropout(0.5, name="Dropout_2")(input_vecs)
 
 # Include RELU as activation layer
 x = layers.Dense(72, activation='relu',name="Dense_1")(input_vecs)
-x = layers.Dropout(0.25, name="Dropout_3")(x)
+x = layers.Dropout(0.4, name="Dropout_3")(x)
 x = layers.Dense(36, activation='relu',name="Dense_2")(x)
 x = layers.Dropout(0.25, name="Dropout_4")(x)
 #x = layers.Dense(32, activation='relu',name="Dense_3")(x)
@@ -257,15 +266,18 @@ def r2_keras(y_true, y_pred):
 def rmse(y_true, y_pred):
 	return K.sqrt(K.mean(K.square(y_pred - y_true), axis=-1))
 
-model = keras.models.Model(inputs=[user_input, item_input, tfidf_input], outputs=y)
+model = keras.models.Model(inputs=[user_input, item_input],
+    #                               tfidf_input], 
+    outputs=y)
 model.compile(optimizer='adam', loss='mae', metrics=['mse','mape'])
+
 
 #add tensorboard
 #log_dir="logs/fit/recsys_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 log_dir = os.path.join(
     "logs",
     "fit",
-    "recsys_tfidf_"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+    "recsys_tfidf_combined_"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
 )
 if(verbose):
     print("Tensorboard callbacks directory:",log_dir)
@@ -278,8 +290,10 @@ print('Script: 07.02.01 [Create DNN model w/ embeddings] completed')
 # =============================================================================
 # input user_id_train & item_id_train
 # output rating_train
-history = model.fit([user_df.astype(float).values, prod_df.astype(float).values,
-                     tfidf_df.astype(float).values], 
+
+item_df = pd.merge(prod_df, tfidf_df, how='inner', left_index=True, right_index=True)
+history = model.fit([user_df.astype(float).values, item_df.astype(float).values],
+                     #tfidf_df.astype(float).values], 
                      ratings_df.astype(float).values,
                      batch_size=64, epochs=10, validation_split=0.1,
                      shuffle=True,callbacks=[tensorboard_callback])
@@ -288,7 +302,7 @@ history = model.fit([user_df.astype(float).values, prod_df.astype(float).values,
 weights = model.get_weights()
 user_embeddings = weights[0]
 item_embeddings = weights[1]
-tfidf_embeddings = weights[2]
+#tfidf_embeddings = weights[2]
 
 if(verbose):
     print("layer shapes:")
@@ -297,18 +311,37 @@ if(verbose):
     # Model Summary
     print(model.summary())
 
+
+"""
+#testing other layer encodings
+#get dense encoded weights
+encoder = keras.models.Model(inputs=[user_input, item_input, tfidf_input], outputs=input_vecs)
+encoder.summary()
+
+import numpy as np
+encoded_items = None
+for j in range(0, len(user_df)-1,50000):
+    if encoded_items is None:
+        encoded_items = encoder.predict([user_df.values[:50000], 
+                                 prod_df.values[:50000],
+                                 tfidf_df.values[:50000]])
+    else:
+        encoded_items = np.append(encoded_items, encoder.predict([user_df.values[j:j+50000], 
+                                 prod_df.values[j:j+50000],
+                                 tfidf_df.values[j:j+50000]]), axis=0)
+"""   
 print('Script: 07.03.01 [Train DNN model w/ embeddings] completed')
 # =============================================================================
 # 07.04.01 | Save DNN model, user and product embeddings
 # =============================================================================
 if(create_data_files):
     #save model weights
-    model.save('./code/models/deep/models/merged_2_embedding_2L_6_3_64f_20191117_cat_nlp.h5')
+    model.save('./code/models/deep/models/merged_2embedding_2L_min_func_f_20191120_cat_nlp.h5')
     
     #save embeddings
-    pd.DataFrame(user_embeddings).to_pickle("./data/pickles/enhanced/user_embeddings_2L_6f_20191117_cat_nlp.pkl")
-    pd.DataFrame(item_embeddings).to_pickle("./data/pickles/enhanced/product_embeddings_2L_3f_20191117_cat_nlp.pkl")
-    pd.DataFrame(tfidf_embeddings).to_pickle("./data/pickles/enhanced/product_tfidf_embeddings_2L_64f_20191117_cat_nlp.pkl")
+    pd.DataFrame(user_embeddings).to_pickle("./data/pickles/enhanced/user_embeddings_2L_minf_20191120_cat_nlp.pkl")
+    pd.DataFrame(item_embeddings).to_pickle("./data/pickles/enhanced/product_embeddings_2L_minf_20191120_cat_nlp.pkl")
+    #pd.DataFrame(tfidf_embeddings).to_pickle("./data/pickles/enhanced/product_tfidf_embeddings_2L_64f_20191120_cat_nlp.pkl")
     
 else:
     print("data file creation skipped..")
