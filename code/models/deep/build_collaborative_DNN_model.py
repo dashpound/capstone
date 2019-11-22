@@ -29,7 +29,7 @@ import pickle, datetime, os, gc
 from compress_pickle import dump
 import pandas as pd
 from pathlib import Path
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 
 # Import modules (other scripts)
 from code.configuration.environment_configuration import *
@@ -155,6 +155,7 @@ prod_df = merged_2.loc[:,['prodIdx', 'price_t',
                            'numberQuestions', 'numberReviews', 
                            'meanStarRating','cat_idx']].copy()
 tfidf_df = merged_3.iloc[:,30:].copy()
+item_df = pd.merge(prod_df, tfidf_df, how='inner', left_index=True, right_index=True)
 
 #user frame
 user_df = merged_2.loc[:,['userIdx', 'helpful_proportion', 'help_count', 'reviewYear', 'reviewMonth', 
@@ -195,6 +196,8 @@ print('Script: 07.01.01 [Prepare data for modeling] completed')
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import backend as K
+from tensorflow.keras.optimizers import Adam
+
 
 #clear prior session before running
 K.clear_session()
@@ -203,57 +206,108 @@ user_cols = user_df.shape[1]
 prod_cols = prod_df.shape[1]
 tfidf_cols = tfidf_df.shape[1]
 
-item_cols = prod_cols + tfidf_cols
+#item_cols = prod_cols + tfidf_cols
+
+u_cols = ['helpful_proportion', 'help_count', 
+       'MaxRating', 'MinRating', 'NumberOfRatings', 'AverageRating',
+       'MaxPrice', 'MinPrice', 'AveragePrice']
+p_cols = ['price_t', 'numberQuestions', 'numberReviews', 'meanStarRating']
 #user_cols = 1
-#prod_cols = 1
-user_dim = user_df.shape[0]
-user_input = layers.Input(shape=(user_cols,), name = 'user')
-item_input = layers.Input(shape=(item_cols,), name = 'item')
-#tfidf_input = layers.Input(shape=(tfidf_cols,), name = 'tfidf')
+#prod_cols = 1tf
+#user_dim = user_df.shape[0]
+
+#embedding layers
+user_id_input = layers.Input(shape=(1,), name = 'userId')
+item_id_input = layers.Input(shape=(1,), name = 'itemId')
+catIdx_input = layers.Input(shape=(1,), name = 'catIdx')
+reviewYear_input = layers.Input(shape=(1,), name = 'revYr')
+reviewMonth_input = layers.Input(shape=(1,), name = 'revMn')
+tfidf_input = layers.Input(shape=(tfidf_cols,), name = 'tfidf')
+
+#quantitative input
+user_input = layers.Input(shape=(len(u_cols),), name = 'user')
+item_input = layers.Input(shape=(len(p_cols),), name = 'item')
+
+
+user_encode = layers.Dense(len(u_cols)*2, activation='relu',name="Dense_1u")(user_input)
+user_encode = layers.Dropout(0.2, name="Dropout_1u")(user_encode)
+
+item_encode = layers.Dense(len(p_cols)*2, activation='relu',name="Dense_1i")(item_input)
+item_encode = layers.Dropout(0.2, name="Dropout_1i")(item_encode)
+
+"""
+tfidf_encode = layers.Dense(100, activation='relu',name="Dense_1t")(tfidf_input)
+tfidf_encode = layers.Dropout(0.2, name="Dropout_1t")(tfidf_encode)
+tfidf_encode = layers.Dense(75, activation='relu',name="Dense_2t")(tfidf_encode)
+tfidf_encode = layers.Dropout(0.2, name="Dropout_2t")(tfidf_encode)
+tfidf_encode = layers.Dense(50, activation='relu',name="Dense_3t")(tfidf_encode)
+tfidf_encode = layers.Dropout(0.2, name="Dropout_3t")(tfidf_encode)
+"""
 
 #starting at 100
 def get_embedding_size(m):
     return(int(min(50, round((m+1)/2,0))))
 #embedding_size = 50
 
+"""
 user_dim = get_embedding_size(user_cols)
 prod_dim = get_embedding_size(prod_cols)
 tfidf_dim = get_embedding_size(tfidf_cols)
-
 item_dim = get_embedding_size(prod_cols+tfidf_cols)
+"""
+
 # input_dim: int > 0. Size of the vocabulary, i.e. maximum integer index + 1.
 # output_dim: int >= 0. Dimension of the dense embedding.
 # input_length: Length of input sequences, when it is constant. 
-user_embedding = layers.Embedding(output_dim = user_dim, input_dim = len(u_uniq),
-                           input_length = user_cols, name = 'user_embedding')(user_input)
-item_embedding = layers.Embedding(output_dim = item_dim, input_dim = len(p_uniq),
-                           input_length = item_cols, name = 'item_embedding')(item_input)
-#tfidf_embedding = layers.Embedding(output_dim = tfidf_dim, input_dim = len(p_uniq)+1,
-#                           input_length = tfidf_cols, name = 'tfidf_embedding')(tfidf_input)
+userid_embedding = layers.Embedding(output_dim = 50, input_dim = len(u_uniq),
+                           input_length = 1, name = 'userid_embedding')(user_id_input)
+itemid_embedding = layers.Embedding(output_dim = 50, input_dim = len(p_uniq),
+                           input_length = 1, name = 'itemid_embedding')(item_id_input)
+catid_embedding = layers.Embedding(output_dim = 50, input_dim = len(merged_3.cat_idx.unique()),
+                           input_length = 1, name = 'catid_embedding')(catIdx_input)
+revYr_embedding = layers.Embedding(output_dim = 50, input_dim = len(merged_3.reviewYear.unique()),
+                           input_length = 1, name = 'revYr_embedding')(reviewYear_input)
+revMn_embedding = layers.Embedding(output_dim = 50, input_dim = len(merged_3.reviewMonth.unique()),
+                           input_length = 1, name = 'revMn_embedding')(reviewMonth_input)
+tfidf_embedding = layers.Embedding(output_dim = 100, input_dim = len(p_uniq),
+                           input_length = tfidf_cols, name = 'tfidf_embedding')(tfidf_input)
 
 # reshape from shape: (samples, input_length, embedding_size)
 # to shape: (samples, input_length * embedding_size) which is
 # equal to shape: (samples, embedding_size)
-user_vecs = layers.Flatten(name="FlattenUser")(user_embedding)
-user_vecs_d = layers.Dropout(0.25, name="Dropout_u_1")(user_vecs)
-item_vecs = layers.Flatten(name="FlattenItem")(item_embedding)
-item_vecs_d = layers.Dropout(0.25, name="Dropout_i_1")(item_vecs)
-#tfidf_vecs = layers.Flatten(name="FlattenTfidf")(tfidf_embedding)
-#tfidf_vecs_d = layers.Dropout(0.25, name="Dropout_t_1")(tfidf_vecs)
+userid_vecs = layers.Flatten(name="FlattenUserID")(userid_embedding)
+userid_vecs = layers.Dropout(0.25, name="Dropout_uid_1")(userid_vecs)
+
+itemid_vecs = layers.Flatten(name="FlattenItemID")(itemid_embedding)
+itemid_vecs = layers.Dropout(0.25, name="Dropout_iid_1")(itemid_vecs)
+
+catid_vecs = layers.Flatten(name="FlattenCatID")(catid_embedding)
+catid_vecs = layers.Dropout(0.25, name="Dropout_cid_1")(catid_vecs)
+
+revYr_vecs = layers.Flatten(name="FlattenRevYear")(revYr_embedding)
+revYr_vecs = layers.Dropout(0.25, name="Dropout_ry_1")(revYr_vecs)
+
+revMn_vecs = layers.Flatten(name="FlattenRevMonth")(revMn_embedding)
+revMn_vecs = layers.Dropout(0.25, name="Dropout_rm_1")(revMn_vecs)
+
+tfidf_vecs = layers.Flatten(name="FlattenTfidf")(tfidf_embedding)
+tfidf_vecs = layers.Dropout(0.25, name="Dropout_tf_1")(tfidf_vecs)
 
 # concatenate user_vecs and item_vecs
-input_vecs = layers.Concatenate(name="Concat")([user_vecs, item_vecs])#,tfidf_vecs])
-input_vecs = layers.Dropout(0.5, name="Dropout_2")(input_vecs)
+input_vecs = layers.Concatenate(name="Concat")([user_encode, item_encode,
+                               userid_vecs, itemid_vecs, catid_vecs, revYr_vecs,
+                               revMn_vecs, tfidf_vecs])
+input_vecs = layers.Dropout(0.5, name="Dropout_1c")(input_vecs)
 
 # Include RELU as activation layer
-x = layers.Dense(72, activation='relu',name="Dense_1")(input_vecs)
-x = layers.Dropout(0.4, name="Dropout_3")(x)
-x = layers.Dense(36, activation='relu',name="Dense_2")(x)
-x = layers.Dropout(0.25, name="Dropout_4")(x)
-#x = layers.Dense(32, activation='relu',name="Dense_3")(x)
-#x = layers.Dropout(0.25, name="Dropout_5")(x)
-#x = layers.Dense(10, activation='relu',name="Dense_4")(x)
-#x = layers.Dropout(0.5, name="Dropout_6")(x)
+x = layers.Dense(96, activation='relu',name="Dense_1")(input_vecs)
+x = layers.Dropout(0.2, name="Dropout_2c")(x)
+x = layers.Dense(64, activation='relu',name="Dense_2")(x)
+x = layers.Dropout(0.2, name="Dropout_3c")(x)
+x = layers.Dense(32, activation='relu',name="Dense_3")(x)
+x = layers.Dropout(0.2, name="Dropout_4c")(x)
+x = layers.Dense(16, activation='relu',name="Dense_4")(x)
+x = layers.Dropout(0.2, name="Dropout_5c")(x)
 y = layers.Dense(1, activation='sigmoid', name="output")(x) * 5 + 0.5 #scale to 1-5
 
 #custom r2 metric
@@ -266,18 +320,19 @@ def r2_keras(y_true, y_pred):
 def rmse(y_true, y_pred):
 	return K.sqrt(K.mean(K.square(y_pred - y_true), axis=-1))
 
-model = keras.models.Model(inputs=[user_input, item_input],
-    #                               tfidf_input], 
+model = keras.models.Model(inputs=[user_id_input, item_id_input, catIdx_input, 
+                                   reviewYear_input, reviewMonth_input, 
+                                   user_input, item_input, tfidf_input],
     outputs=y)
+#Adam(lr=0.001)
 model.compile(optimizer='adam', loss='mae', metrics=['mse','mape'])
-
 
 #add tensorboard
 #log_dir="logs/fit/recsys_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 log_dir = os.path.join(
     "logs",
     "fit",
-    "recsys_tfidf_combined_"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+    "recsys_tfidf_dense_"+datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
 )
 if(verbose):
     print("Tensorboard callbacks directory:",log_dir)
@@ -291,12 +346,39 @@ print('Script: 07.02.01 [Create DNN model w/ embeddings] completed')
 # input user_id_train & item_id_train
 # output rating_train
 
-item_df = pd.merge(prod_df, tfidf_df, how='inner', left_index=True, right_index=True)
-history = model.fit([user_df.astype(float).values, item_df.astype(float).values],
-                     #tfidf_df.astype(float).values], 
+history = model.fit([user_df.userIdx.values, prod_df.prodIdx.values, 
+                     merged_3.cat_idx.values-1, merged_3.reviewYear.values-1999, 
+                     merged_3.reviewMonth.values-1,
+                     user_df[u_cols].astype(float).values, 
+                     prod_df[p_cols].astype(float).values,
+                     tfidf_df.astype(float).values], 
                      ratings_df.astype(float).values,
-                     batch_size=64, epochs=10, validation_split=0.1,
+                     batch_size=256, epochs=10, validation_split=0.1,
                      shuffle=True,callbacks=[tensorboard_callback])
+model.optimizer.lr = 0.0001
+history = model.fit([user_df.userIdx.values, prod_df.prodIdx.values, 
+                     merged_3.cat_idx.values-1, merged_3.reviewYear.values-1999, 
+                     merged_3.reviewMonth.values-1,
+                     user_df[u_cols].astype(float).values, 
+                     prod_df[p_cols].astype(float).values,
+                     tfidf_df.astype(float).values], 
+                     ratings_df.astype(float).values,
+                     batch_size=256, epochs=3, validation_split=0.1,
+                     shuffle=True,callbacks=[tensorboard_callback])
+model.optimizer.lr = 0.00001
+history = model.fit([user_df.userIdx.values, prod_df.prodIdx.values, 
+                     merged_3.cat_idx.values-1, merged_3.reviewYear.values-1999, 
+                     merged_3.reviewMonth.values-1,
+                     user_df[u_cols].astype(float).values, 
+                     prod_df[p_cols].astype(float).values,
+                     tfidf_df.astype(float).values], 
+                     ratings_df.astype(float).values,
+                     batch_size=256, epochs=1, validation_split=0.1,
+                     shuffle=True,callbacks=[tensorboard_callback])
+#get dense encoded weights
+#encoder = keras.models.Model(inputs=item_input, outputs=item_encode)
+#encoder.summary()
+#encoded_items = encoder.predict(item_df.astype(float).values)
 
 # get model weights and shape
 weights = model.get_weights()
@@ -336,11 +418,11 @@ print('Script: 07.03.01 [Train DNN model w/ embeddings] completed')
 # =============================================================================
 if(create_data_files):
     #save model weights
-    model.save('./code/models/deep/models/merged_2embedding_2L_min_func_f_20191120_cat_nlp.h5')
+    model.save('./code/models/deep/models/merged_5embed_dense_lr2_20191121_cat_nlp.h5')
     
     #save embeddings
-    pd.DataFrame(user_embeddings).to_pickle("./data/pickles/enhanced/user_embeddings_2L_minf_20191120_cat_nlp.pkl")
-    pd.DataFrame(item_embeddings).to_pickle("./data/pickles/enhanced/product_embeddings_2L_minf_20191120_cat_nlp.pkl")
+    #pd.DataFrame(user_embeddings).to_pickle("./data/pickles/enhanced/user_embeddings_2L_minf_20191120_cat_nlp.pkl")
+    #pd.DataFrame(item_embeddings).to_pickle("./data/pickles/enhanced/product_embeddings_2L_minf_20191120_cat_nlp.pkl")
     #pd.DataFrame(tfidf_embeddings).to_pickle("./data/pickles/enhanced/product_tfidf_embeddings_2L_64f_20191120_cat_nlp.pkl")
     
 else:
