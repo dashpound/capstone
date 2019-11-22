@@ -24,6 +24,7 @@
 # Import packages
 #import pickle, datetime, os, gc
 import pandas as pd
+import numpy as np
 from compress_pickle import load
 import random
 import matplotlib.pyplot as plt
@@ -37,7 +38,7 @@ from code.configuration.environment_configuration import *
 #from data_load import *
 
 #console output flag
-verbose = False
+verbose = True
 #create data files flag
 create_data_files = False
 
@@ -70,7 +71,7 @@ dependencies = {
     'r2_keras': r2_keras
 }
 #load dnn model
-model = keras.models.load_model('./code/models/deep/models/merged_2embedding_2L_min_func_f_20191120_cat_nlp.h5',
+model = keras.models.load_model('./code/models/deep/models/merged_5embed_dense_lr2_20191121_cat_nlp.h5',
                                 custom_objects=dependencies)
 
 print('Script: 08.00.02 [Import packages] completed')
@@ -91,8 +92,8 @@ def get_sim_products_by_user(rev_id):
     test['userIdx'] = u_test_idx.idx
     
     #setup product DF for predictions
-    prod_avg = item_df[['prodIdx', 'price_t', 'numberQuestions', 'numberReviews',
-                        'meanStarRating', 'cat_idx']].groupby(by='prodIdx').mean()
+    #prod_avg = item_df[['prodIdx', 'price_t', 'numberQuestions', 'numberReviews',
+    #                    'meanStarRating', 'cat_idx']].groupby(by='prodIdx').mean()
     
     
     prod_avg = item_df.groupby(by='prodIdx').mean()
@@ -100,6 +101,7 @@ def get_sim_products_by_user(rev_id):
     #prod_unq = prod_df.drop_duplicates()
     #prod_test_pop = pd.merge(prod_avg, prod_unq, how='inner', on='prodIdx')
     prod_test_user = pd.merge(test.prodIdx, prod_avg, how='inner', on='prodIdx')
+    
     #t=tfidf_df[tfidf_df.userIdx!=u_test_idx.idx].iloc[:,1:].drop_duplicates()
     #prod_tfidf_user = pd.merge(test.prodIdx, t, how='inner', on='prodIdx')
     #prod_tfidf_user.drop(columns=['prodIdx'], inplace=True)
@@ -112,18 +114,31 @@ def get_sim_products_by_user(rev_id):
     prod_test_user.shape]#,
     #prod_tfidf_user.shape]
 
+    u_cols = ['helpful_proportion', 'help_count', 
+       'MaxRating', 'MinRating', 'NumberOfRatings', 'AverageRating',
+       'MaxPrice', 'MinPrice', 'AveragePrice']
+    p_cols = ['price_t', 'numberQuestions', 'numberReviews', 'meanStarRating']
     #predict ratings
     #test_predictions = model.predict([test.user_idx.astype(float).values, test.prod_idx.astype(float).values])
-    test_predictions = model.predict([user_test_user.astype(float).values, 
-                                      prod_test_user.astype(float).values])
-                                      #prod_tfidf_user.astype(float).values])
+    test_predictions = model.predict([user_test_user.userIdx.values, 
+                                      prod_test_user.prodIdx.values, 
+                                      pd.merge(prod_test_user.prodIdx, 
+                                               products_clean[['idx','cat_idx']], 
+                                               how='inner', left_on='prodIdx', 
+                                               right_on='idx').cat_idx.values-1,
+                                      np.asarray([round(merged_3[merged_3['reviewerID']==rev_id].reviewYear.mean(), 0)]*prod_test_user.shape[0])-1999, 
+                                      np.asarray([round(merged_3[merged_3['reviewerID']==rev_id].reviewMonth.mean(), 0)]*prod_test_user.shape[0])-1,
+                                      user_test_user[u_cols].astype(float).values, 
+                                      prod_test_user[p_cols].astype(float).values,
+                                      prod_test_user.iloc[:,6:].astype(float).values])
     
+                    
     test['p_ratings'] = test_predictions
     
     #print prediction distribution
     if(verbose):
         plt.figure()
-        test.p_ratings.round(2).hist(bins=10000)
+        test.p_ratings.round(2).hist()
     
     df_columns = ['asin', 'description', 'title', 'category2_t', 'category3_t',
        'category4_t', 'category5_t', 'category6_t', 'hasDescription',

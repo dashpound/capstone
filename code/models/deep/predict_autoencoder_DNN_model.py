@@ -84,8 +84,9 @@ print('Script: 10.03.01 [Imported sklearn cosine dist. func] completed')
 if(create_data_files):
     dash_predict = pd.DataFrame()
 
-predictions = 20
-for j in range(predictions):
+iterations = 20
+predictions = 11
+for j in range(iterations):
     i = random.randint(0,len(encoded_items))
     x = encoded_items[i]
     pd.set_option('display.max_columns', 50)
@@ -94,14 +95,14 @@ for j in range(predictions):
     if(use_sklearn):
         sim_sk = cosine_similarity(encoded_items, encoded_items[i].reshape(1,-1))
         sim_sk_results = pd.DataFrame(sim_sk, columns=['cdist'])
-        sim_sk_df = pd.merge(products_clean, sim_sk_results.nlargest(10, 'cdist'), how='inner',
+        sim_sk_df = pd.merge(products_clean, sim_sk_results.nlargest(predictions, 'cdist'), how='inner',
                           left_index=True, right_index=True)
         sim_df = sim_sk_df
     else:
         #products_clean.loc[products_clean.asin==prod_df.iloc[i].name,:]
         sim_cpy = scipy_dist(encoded_items, x)
         sim_cpy_results = pd.DataFrame(sim_cpy, columns=['cdist'])
-        sim_cpy_df = pd.merge(products_clean, sim_cpy_results.nlargest(10, 'cdist'), how='inner',
+        sim_cpy_df = pd.merge(products_clean, sim_cpy_results.nlargest(predictions, 'cdist'), how='inner',
                           left_index=True, right_index=True)
         sim_df = sim_cpy_df
     
@@ -111,7 +112,7 @@ for j in range(predictions):
                'meanStarRating', 'Category_', 'cat_idx', 'idx']
     
     if(create_data_files):
-        orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin']]]*10).reset_index(drop=True)
+        orig_product = pd.DataFrame([products_clean.loc[i,['idx','asin']]]*predictions).reset_index(drop=True)
         pred_product = sim_df[['idx', 'asin', 'cdist'
         ]].sort_values(by = 'cdist', ascending = False).reset_index(drop=True)
         dash_predict = dash_predict.append(pd.merge(orig_product, pred_product, 
@@ -128,6 +129,7 @@ if(create_data_files):
                                  "asin_y": "recommended_product_id",
                                  "cdist": "predicted_rating"}, inplace=True)
     dash_predict.reset_index(drop=True, inplace=True)
+    dash_predict = dash_predict[dash_predict.original_product_id_int!=dash_predict.recommended_product_id_int]
     dash_predict.to_pickle('./data/pickles/enhanced/dnn_autoencoder_20_predictions.pkl')
 print('Script: 10.04.01 [Find similar products] completed')
 # =============================================================================
