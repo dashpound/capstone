@@ -4,12 +4,12 @@
 # Name:               12_baseline_ratings_model_clusters
 # Author:             Kiley
 # Last Edited Date:   11/17/19
-# Description:        Generate predictions for unrated items using SVD model.
+# Description:        Ensemble of tools
 #
-# Notes:              Only generating predictions for SVD model since that was the 'best' model.
-#                     Data formatting is a large part of this script since matrix format does not work for surprise.
-#                     Therefore, need to get reviewer & product combinations into a data frame.
-#                     Surprise also uses different ids to generate predictions so translation back to original ids is required.
+# Notes:
+#
+#
+#
 #
 #
 # Warnings:           Experiencing memory issues building predictions. Tested code using 1% of data.
@@ -37,7 +37,7 @@ clusters=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 print('Script: 12.00.02 [Import packages] completed')
 
 # =============================================================================
-# 12.00.03 | Readin predictions
+# 12.00.03 | Readin predictions - SVD
 # =============================================================================
 start = timer()
 cluster = clusters[0]
@@ -54,9 +54,98 @@ print(end - start, 'seconds')
 # 12.00.04 | Review
 # =============================================================================
 start = timer()
-print(rec.head())
-print(rec.info())
+#print(rec.head())
+#print(rec.info())
 
 print('Script: 12.00.03 [Review Predictions] completed')
 end = timer()
 print(end - start, 'seconds')
+
+# =============================================================================
+# 12.01.01 | Read in predictions - cluster
+# =============================================================================
+start = timer()
+
+c_frame = pd.read_csv("./output/clusters/reviewer/camera/camera_reviewer_cluster.csv")
+print('Number of Rows:'+ str(len(c_frame)))
+
+print('Script: 12.01.01 [Cluster Predictions] completed')
+end = timer()
+print(end - start, 'seconds')
+
+# =============================================================================
+# 12.01.02 | Melt cluster labels
+# =============================================================================
+start = timer()
+
+m_frame = pd.melt(c_frame, id_vars='labels')
+print('Number of Rows:'+ str(len(m_frame)))
+
+m_frame = m_frame.dropna(subset=['value'])
+print('Number of Rows:'+ str(len(m_frame)))
+
+print('Script: 12.01.02 [Melt] completed')
+end = timer()
+print(end - start, 'seconds')
+
+# =============================================================================
+# 12.01.03 | Filter Clusters
+# =============================================================================
+start = timer()
+
+m_frame = m_frame[m_frame['variable']=='0']
+m_frame.rename(columns={'variable':'reviewer_cluster'}, inplace=True)
+m_frame = m_frame.drop(columns='value')
+
+print('Number of Rows:'+ str(len(m_frame)))
+
+print(m_frame.info())
+
+print('Script: 12.01.03 [Filter Clusters] completed')
+end = timer()
+print(end - start, 'seconds')
+
+# =============================================================================
+# 12.02.01 | Read Reviews Data
+# =============================================================================
+start = timer()
+
+with open((working_directory + '/data/pickles/og_pickles/reviewsdata_5.pkl'), 'rb') as pickle_file:
+    review_data = pickle.load(pickle_file)
+    review_data = pd.DataFrame(review_data)
+
+print(review_data.info())
+
+print('Script: 12.02.01 [Review Data] completed')
+end = timer()
+print(end - start, 'seconds')
+
+# =============================================================================
+# 12.03.01 | Label review data with clusters
+# =============================================================================
+start = timer()
+
+review_data_c = pd.merge(left=review_data, right=m_frame, left_on='reviewerID', right_on='labels',
+                         how='inner')
+
+review_data_c = review_data_c.drop(columns='labels')
+
+print(review_data_c.head())
+
+print('Script: 12.03.01 [Review Data] completed')
+end = timer()
+print(end - start, 'seconds')
+
+# =============================================================================
+# 12.04.01 | Top N from Cluster 0
+# =============================================================================
+start = timer()
+
+review_data_c = review_data_c.drop(columns='labels')
+
+print(review_data_c.head())
+
+print('Script: 12.03.01 [Review Data] completed')
+end = timer()
+print(end - start, 'seconds')
+
