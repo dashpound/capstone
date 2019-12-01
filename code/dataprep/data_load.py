@@ -58,52 +58,52 @@ else:
     print(reviews_df.head())
     print('Script: 02.01.02 [Verify Data Load] completed')
 
-# # =============================================================================
-# # 02.01.03 | Load Product Metadata Data
-# # =============================================================================
-# # Performing garbage collect just in case
-# gc.collect()
-#
-# # Unpack metadata
-# with open(Path(working_directory + data_path + metadata_path), 'rb') as pickle_file:
-#     metadata_df = pickle.load(pickle_file)
-#     metadata_df = pd.DataFrame(metadata_df)
-#
-# print('Script: 02.01.03 [Load Product Metadata Data] completed')
-#
-# # =============================================================================
-# # 02.01.04 | Verify Reviews Data Loaded Successfully
-# # =============================================================================
-#
-# if verify == 'n':
-#     print('Script: 02.01.04 [Verify Reviews Data] skipped')
-# else:
-#     print('Metadata data shape: ', metadata_df.shape)
-#     print('Metadata data columns: ', metadata_df.columns)
-#     print(metadata_df.head())
-#     print('Script: 02.01.04 [Verify Reviews Data] completed')
-#
-# # =============================================================================
-# # 02.01.04 | Load QA Data
-# # =============================================================================
-# # Performing garbage collect just in case
-# gc.collect()
-#
-# # Unpack QA data
-# # Not sure if QA data will be used just yet
-# with open(Path(working_directory + data_path + qa_path), 'rb') as pickle_file:
-#     qa_df = pickle.load(pickle_file)
-#     qa_df = pd.DataFrame(qa_df)
-#
-# print('Script: 02.01.05 [Load QA Data] completed')
-#
-# # =============================================================================
-# # 02.01.05 | Verify QA Data Loaded Successfully
-# # =============================================================================
-# if verify == 'n':
-#     print('Script: 02.01.05 [Verify QA Data] skipped')
-# else:
-#     print('Q/A data shape: ', qa_df.shape)
-#     print('Q/A data columns: ', qa_df.columns)
-#     print(qa_df.head())
-#     print('Script: 02.01.05 [Verify QA Data] completed')
+# =============================================================================
+# 02.01.03 | Load Product Metadata Data
+# =============================================================================
+# Performing garbage collect just in case
+gc.collect()
+
+# Unpack metadata
+with open(Path(working_directory + data_path + metadata_path), 'rb') as pickle_file:
+    metadata_df = pickle.load(pickle_file)
+    metadata_df = pd.DataFrame(metadata_df)
+
+print('Script: 02.01.03 [Load Product Metadata Data] completed')
+
+# =============================================================================
+# 02.01.04 | Verify Reviews Data Loaded Successfully
+# =============================================================================
+
+if verify == 'n':
+    print('Script: 02.01.04 [Verify Reviews Data] skipped')
+else:
+    print('Metadata data shape: ', metadata_df.shape)
+    print('Metadata data columns: ', metadata_df.columns)
+    print(metadata_df.head())
+    print('Script: 02.01.04 [Verify Reviews Data] completed')
+
+# =============================================================================
+# 02.01.04 | Load QA Data
+# =============================================================================
+# Performing garbage collect just in case
+gc.collect()
+
+# Unpack QA data
+# Not sure if QA data will be used just yet
+with open(Path(working_directory + data_path + qa_path), 'rb') as pickle_file:
+    qa_df = pickle.load(pickle_file)
+    qa_df = pd.DataFrame(qa_df)
+
+print('Script: 02.01.05 [Load QA Data] completed')
+
+# =============================================================================
+# 02.01.05 | Verify QA Data Loaded Successfully
+# =============================================================================
+if verify == 'n':
+    print('Script: 02.01.05 [Verify QA Data] skipped')
+else:
+    print('Q/A data shape: ', qa_df.shape)
+    print('Q/A data columns: ', qa_df.columns)
+    print(qa_df.head())
+    print('Script: 02.01.05 [Verify QA Data] completed')
