@@ -34,31 +34,6 @@ clusters=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 print('Script: 12.00.02 [Import packages] completed')
 
 # =============================================================================
-# 12.00.03 | Readin predictions - SVD
-# =============================================================================
-start = timer()
-cluster = clusters[0]
-
-with open((working_directory + '/output' + '/baseline_model/svd_recommendations_cluster'+cluster+'.pkl'), 'rb') as pickle_file:
-    rec = pickle.load(pickle_file)
-    rec = pd.DataFrame(rec)
-
-print('Script: 12.00.03 [Load Table into Memory] completed')
-end = timer()
-print(end - start, 'seconds')
-
-# =============================================================================
-# 12.00.04 | Review
-# =============================================================================
-start = timer()
-#print(rec.head())
-#print(rec.info())
-
-print('Script: 12.00.03 [Review Predictions] completed')
-end = timer()
-print(end - start, 'seconds')
-
-# =============================================================================
 # 12.01.01 | Read in predictions - cluster
 # =============================================================================
 start = timer()
@@ -151,10 +126,15 @@ conv_pivot2df(a)
 
 # Filter so that only products with 5 or more reviews are considered
 b = a[a['len']>=5]
+e = a[a['len']>=1]
 
 # Sort the reviews
 c = b['mean'].sort_values(ascending=False)
 c = c.reset_index()
+f = e['mean'].sort_values(ascending=False)
+f = f.reset_index()
+
+f.to_csv("./output/clusters/rec/cluster0_all.csv")
 
 print('Script: 12.04.01 [Identify top products] completed')
 end = timer()
