@@ -128,7 +128,7 @@ spyder-kernels==0.4.4
 tensorboard==1.13.1
 tensorflow==1.13.1
 tensorflow-estimator==1.13.0
-tensorflow-gpu==1.13.1
+tensorflow-gpu==1.15.4
 termcolor==1.1.0
 testpath==0.4.2
 textgenrnn==1.5.0
