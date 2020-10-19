@@ -4,6 +4,8 @@ Since its inception nearly 25 years ago, Amazon has been focused on delivering a
 
 Amazon has a subset of customers who write reviews about their purchased products (reviewers). Reviewers tend to be more engaged with Amazon’s platform, giving Amazon the ability to increase product exposure with this segment. By mining historical reviews for information on product preference and sentiment, Amazon can understand and utilize reviewer preference to develop a more personalized product recommendation experience for each reviewer. 
 
+Dashboard link deployed here using a hobby instance of Heroku: https://cognoclick.herokuapp.com/
+
 **Disclaimer:** This project was completed as part of the MSDS 498 Capstone Project course within the Northwestern University. All data, dashboards, and insights used throughout this project are completely simulated and not in any way connected to or a reﬂection of Amazon. Please do not duplicate or distribute outside of the context of this course. 
 
 ## Repo Structure
